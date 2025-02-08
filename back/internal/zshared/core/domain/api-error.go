@@ -7,13 +7,13 @@ import (
 type ErrorGroup string
 
 var (
-	GeneralErrors    ErrorGroup = "GEN"
-	AuthErrors       ErrorGroup = "AUT"
-	UserErrors       ErrorGroup = "USR"
-	NewsletterErrors ErrorGroup = "NWS"
-	AdminErrors      ErrorGroup = "ADM"
-	FileErrors       ErrorGroup = "FIL"
-	TopicErrors      ErrorGroup = "TOP"
+	GeneralErrors ErrorGroup = "GEN"
+	AuthErrors    ErrorGroup = "AUT"
+	UserErrors    ErrorGroup = "USR"
+	StoreErrors   ErrorGroup = "STO"
+	ProductErrors ErrorGroup = "PRD"
+	OrderErrors   ErrorGroup = "ORD"
+	FileErrors    ErrorGroup = "FIL"
 )
 
 type ApiError struct {

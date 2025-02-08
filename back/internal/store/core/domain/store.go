@@ -32,3 +32,11 @@ func NewStore(name, contact, address, city, status string) *Store {
 		UpdatedAt: &now,
 	}
 }
+
+type CreateStoreDTO struct {
+	Name    string `json:"name"`
+	Contact string `json:"contact"`
+	Address string `json:"address"`
+	City    string `json:"city"`
+	Status  string `json:"status"`
+}

@@ -13,18 +13,19 @@ import (
 
 type Server struct {
 	//We will add every new Handler here
-	userHandlers    user_ports.UserHandlers
-	storeHandlers   store_ports.StoreHandlers
-	productHandlers product_ports.ProductHandlers
+	userHandlers    user_ports.IUserHandler
+	storeHandlers   store_ports.IStoreHandler
+	productHandlers product_ports.IProductHandler
 	orderHandlers   order_ports.OrderHandlers
-	//middlewares ports.Middlewares
+	authMw          fiber.Handler
 }
 
 func NewServer(
-	userHandlers user_ports.UserHandlers,
-	storeHandlers store_ports.StoreHandlers,
-	productHandlers product_ports.ProductHandlers,
+	userHandlers user_ports.IUserHandler,
+	storeHandlers store_ports.IStoreHandler,
+	productHandlers product_ports.IProductHandler,
 	orderHandlers order_ports.OrderHandlers,
+	authMw fiber.Handler,
 ) *Server {
 	return &Server{
 		userHandlers:    userHandlers,
@@ -40,8 +41,12 @@ func (s *Server) Initialize() {
 
 	v1 := app.Group("/v1")
 
-	usersRoute := v1.Group("/users")
-	usersRoute.Get("", s.userHandlers.ListUsers)
+	userRoute := v1.Group("/user")
+	userRoute.Get("/login", s.authMw, s.userHandlers.GoogleLogin)
+	userRoute.Post("/", s.authMw, s.userHandlers.CreateUser)
+
+	storeRoute := v1.Group("/store")
+	storeRoute.Post("/", s.authMw, s.storeHandlers.CreateStore)
 
 	err := app.Listen(":3000")
 	if err != nil {

@@ -18,7 +18,7 @@ type ProductRepository struct {
 	shared_ports.Repository[product_domain.Product, any]
 }
 
-func NewproductRepository(ctx context.Context, collection string, connection *mongo.Database, logger *zerolog.Logger) IProductRepository {
+func NewProductRepository(ctx context.Context, collection string, connection *mongo.Database, logger *zerolog.Logger) IProductRepository {
 	repo := shared_repositories.BuildNewRepository[product_domain.Product, any](ctx, collection, connection, logger)
 	return &ProductRepository{
 		repo,

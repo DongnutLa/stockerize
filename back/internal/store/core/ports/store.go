@@ -1,7 +1,18 @@
 package store_ports
 
-type StoreService interface {
+import (
+	"context"
+
+	store_domain "github.com/DongnutLa/stockio/internal/store/core/domain"
+	user_domain "github.com/DongnutLa/stockio/internal/user/core/domain"
+	shared_domain "github.com/DongnutLa/stockio/internal/zshared/core/domain"
+	"github.com/gofiber/fiber/v2"
+)
+
+type IStoreService interface {
+	CreateStore(ctx context.Context, storeDto *store_domain.CreateStoreDTO, authUser *user_domain.User) (*store_domain.Store, *shared_domain.ApiError)
 }
 
-type StoreHandlers interface {
+type IStoreHandler interface {
+	CreateStore(c *fiber.Ctx) error
 }

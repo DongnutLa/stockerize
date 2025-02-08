@@ -6,6 +6,7 @@ import (
 	user_domain "github.com/DongnutLa/stockio/internal/user/core/domain"
 	user_ports "github.com/DongnutLa/stockio/internal/user/core/ports"
 	user_repositories "github.com/DongnutLa/stockio/internal/user/repositories"
+	"github.com/DongnutLa/stockio/internal/zshared/constants"
 	shared_domain "github.com/DongnutLa/stockio/internal/zshared/core/domain"
 	shared_ports "github.com/DongnutLa/stockio/internal/zshared/core/ports"
 	"github.com/rs/zerolog"
@@ -16,36 +17,55 @@ type UserService struct {
 	userRepo user_repositories.IUserRepository
 }
 
-var _ user_ports.UserService = (*UserService)(nil)
-
 func NewUserService(
 	ctx context.Context,
 	logger *zerolog.Logger,
 	repository user_repositories.IUserRepository,
-) *UserService {
+) user_ports.IUserService {
 	return &UserService{
 		logger:   logger,
 		userRepo: repository,
 	}
 }
 
-func (u *UserService) ListUsers(ctx context.Context, topic string) (*[]user_domain.User, *shared_domain.ApiError) {
-	users := []user_domain.User{}
-
-	filter := map[string]interface{}{}
-	if topic != "" {
-		filter["topics"] = topic
+func (u *UserService) GoogleLogin(
+	ctx context.Context,
+	tokenUser *shared_domain.Claims,
+) (*user_domain.User, *shared_domain.ApiError) {
+	opts := shared_ports.FindOneOpts{
+		Filter: map[string]interface{}{
+			"email": tokenUser.Email,
+		},
 	}
 
-	opts := shared_ports.FindManyOpts{
-		Filter: filter,
-	}
+	authUser := user_domain.User{}
 
-	_, err := u.userRepo.FindMany(ctx, opts, &users, false)
+	err := u.userRepo.FindOne(ctx, opts, &authUser)
 	if err != nil {
-		u.logger.Error().Err(err).Msg("Failed to fetch users")
-		return nil, shared_domain.ErrFetchUser
+		return nil, shared_domain.ErrUserNotFound
 	}
 
-	return &users, nil
+	return &authUser, nil
+}
+
+func (u *UserService) CreateUser(ctx context.Context, userDto *user_domain.CreateUserDTO, authUser *user_domain.User) (*user_domain.User, *shared_domain.ApiError) {
+	newUserRole := constants.ManagerRole
+	if authUser.Role == constants.SudoRole {
+		newUserRole = constants.AdminRole
+	}
+
+	newUser := user_domain.NewUser(
+		userDto.Name,
+		userDto.Email,
+		user_domain.UserActive,
+		newUserRole,
+		userDto.Store,
+	)
+
+	err := u.userRepo.InsertOne(ctx, *newUser)
+	if err != nil {
+		return nil, shared_domain.ErrFailedUserCreate
+	}
+
+	return newUser, nil
 }

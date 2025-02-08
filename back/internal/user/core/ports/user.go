@@ -8,10 +8,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type UserService interface {
-	ListUsers(ctx context.Context, topic string) (*[]user_domain.User, *shared_domain.ApiError)
+type IUserService interface {
+	CreateUser(ctx context.Context, userDto *user_domain.CreateUserDTO, authUser *user_domain.User) (*user_domain.User, *shared_domain.ApiError)
+	GoogleLogin(ctx context.Context, tokenUser *shared_domain.Claims) (*user_domain.User, *shared_domain.ApiError)
 }
 
-type UserHandlers interface {
-	ListUsers(c *fiber.Ctx) error
+type IUserHandler interface {
+	CreateUser(c *fiber.Ctx) error
+	GoogleLogin(c *fiber.Ctx) error
 }

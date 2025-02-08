@@ -16,6 +16,7 @@ import (
 	user_services "github.com/DongnutLa/stockio/internal/user/core/services"
 	user_handlers "github.com/DongnutLa/stockio/internal/user/handlers"
 	user_repositories "github.com/DongnutLa/stockio/internal/user/repositories"
+	"github.com/DongnutLa/stockio/internal/zshared/middlewares"
 	shared_repositories "github.com/DongnutLa/stockio/internal/zshared/repositories"
 	"github.com/DongnutLa/stockio/internal/zshared/server"
 	"github.com/DongnutLa/stockio/internal/zshared/utils"
@@ -33,21 +34,25 @@ func main() {
 	//repositories
 	userRepository := user_repositories.NewUserRepository(context.TODO(), "users", conn.Database, &logger)
 	storeRepository := store_repositories.NewStoreRepository(context.TODO(), "stores", conn.Database, &logger)
-	productRepository := product_repositories.NewproductRepository(context.TODO(), "products", conn.Database, &logger)
+	productRepository := product_repositories.NewProductRepository(context.TODO(), "products", conn.Database, &logger)
+	productHistoryRepository := product_repositories.NewProductHistoryRepository(context.TODO(), "products", conn.Database, &logger)
 	orderRepository := order_repositories.NewOrderRepository(context.TODO(), "orders", conn.Database, &logger)
 
 	//services
 	// jwtService := shared_services.NewJwtService([]byte(jwtKey), &logger)
 	userService := user_services.NewUserService(context.TODO(), &logger, userRepository)
 	storeService := store_services.NewStoreService(context.TODO(), &logger, storeRepository)
-	productService := product_services.NewProductService(context.TODO(), &logger, productRepository)
+	productService := product_services.NewProductService(context.TODO(), &logger, productRepository, productHistoryRepository)
 	orderService := order_services.NewOrderService(context.TODO(), &logger, orderRepository)
 
 	//handlers
-	userHandlers := user_handlers.NewUserHandlers(userService)
+	userHandlers := user_handlers.NewUserHandler(userService)
 	storeHandlers := store_handlers.NewStoreHandlers(storeService)
 	productHandlers := product_handlers.NewProductHandlers(productService)
 	orderHandlers := order_handlers.NewOrderHandlers(orderService)
+
+	//Middlewares
+	auth := middlewares.NewAuthMiddleware(&logger, true)
 
 	//server
 	httpServer := server.NewServer(
@@ -55,6 +60,7 @@ func main() {
 		storeHandlers,
 		productHandlers,
 		orderHandlers,
+		auth,
 	)
 	httpServer.Initialize()
 }

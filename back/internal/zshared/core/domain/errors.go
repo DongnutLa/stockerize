@@ -11,43 +11,87 @@ var (
 		fiber.StatusUnauthorized,
 		1,
 	)
+	ErrInvalidToken = NewApiError(
+		"Invalid Token",
+		AuthErrors,
+		fiber.StatusUnauthorized,
+		2,
+	)
 
 	ErrUploadFile = NewApiError(
 		"Failed to upload file",
 		FileErrors,
 		fiber.StatusInternalServerError,
-		2,
+		3,
 	)
 	ErrFetchFile = NewApiError(
 		"Failed to fetch file",
 		FileErrors,
 		fiber.StatusInternalServerError,
-		3,
+		4,
 	)
 
+	ErrUserNotFound = NewApiError(
+		"User not found",
+		UserErrors,
+		fiber.StatusNotFound,
+		5,
+	)
+	ErrAuthUserNotFound = NewApiError(
+		"Auth user not found",
+		UserErrors,
+		fiber.StatusUnauthorized,
+		6,
+	)
+	ErrFailedUserCreate = NewApiError(
+		"Failed creating user",
+		UserErrors,
+		fiber.StatusInternalServerError,
+		7,
+	)
 	ErrFetchUser = NewApiError(
 		"Failed to fetch users",
 		UserErrors,
 		fiber.StatusInternalServerError,
+		8,
+	)
+
+	ErrFailedStoreCreate = NewApiError(
+		"Failed creating user",
+		StoreErrors,
+		fiber.StatusInternalServerError,
+		9,
+	)
+
+	ErrFailedProductCreate = NewApiError(
+		"Failed creating product",
+		ProductErrors,
+		fiber.StatusInternalServerError,
 		10,
+	)
+	ErrFailedProductUpdate = NewApiError(
+		"Failed updating product",
+		ProductErrors,
+		fiber.StatusInternalServerError,
+		11,
 	)
 
 	ErrFailedToParseBody = NewApiError(
 		"Failed to parse body",
 		GeneralErrors,
 		fiber.StatusInternalServerError,
-		11,
+		14,
 	)
 	ErrInvalidParams = NewApiError(
 		"Invalid params",
 		GeneralErrors,
 		fiber.StatusBadRequest,
-		12,
+		15,
 	)
 	ErrGenerateToken = NewApiError(
 		"Unable to generate token access",
 		GeneralErrors,
 		fiber.StatusInternalServerError,
-		13,
+		16,
 	)
 )

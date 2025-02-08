@@ -1,18 +1,42 @@
 package store_handlers
 
 import (
+	store_domain "github.com/DongnutLa/stockio/internal/store/core/domain"
 	store_ports "github.com/DongnutLa/stockio/internal/store/core/ports"
+	user_domain "github.com/DongnutLa/stockio/internal/user/core/domain"
+	"github.com/DongnutLa/stockio/internal/zshared/constants"
+	shared_domain "github.com/DongnutLa/stockio/internal/zshared/core/domain"
+	"github.com/gofiber/fiber/v2"
 )
 
-type StoreHandlers struct {
-	storeService store_ports.StoreService
+type StoreHandler struct {
+	storeService store_ports.IStoreService
 }
 
-// !TEST
-var _ store_ports.StoreHandlers = (*StoreHandlers)(nil)
-
-func NewStoreHandlers(storeService store_ports.StoreService) *StoreHandlers {
-	return &StoreHandlers{
+func NewStoreHandlers(storeService store_ports.IStoreService) store_ports.IStoreHandler {
+	return &StoreHandler{
 		storeService: storeService,
 	}
+}
+
+func (h *StoreHandler) CreateStore(fiberCtx *fiber.Ctx) error {
+	authUser := fiberCtx.Locals(constants.AUTH_USER_KEY).(*user_domain.User)
+	if authUser == nil || authUser.Role != constants.SudoRole {
+		authErr := shared_domain.ErrAuthUserNotFound
+		return fiberCtx.Status(authErr.HttpStatusCode).JSON(authErr)
+	}
+
+	storeDto := store_domain.CreateStoreDTO{}
+	err := fiberCtx.BodyParser(&storeDto)
+	if err != nil {
+		bodyErr := shared_domain.ErrFailedToParseBody
+		return fiberCtx.Status(bodyErr.HttpStatusCode).JSON(bodyErr)
+	}
+
+	store, apiErr := h.storeService.CreateStore(fiberCtx.Context(), &storeDto, authUser)
+	if apiErr != nil {
+		return fiberCtx.Status(apiErr.HttpStatusCode).JSON(apiErr)
+	}
+
+	return fiberCtx.Status(fiber.StatusOK).JSON(store)
 }

@@ -53,6 +53,10 @@ func (s *Server) Initialize() {
 	productRoute.Patch("/", s.authMw, s.productHandlers.UpdateProduct)
 	productRoute.Put("/stock", s.authMw, s.productHandlers.UpdateProductStock)
 
+	orderRoute := v1.Group("/order")
+	orderRoute.Post("/", s.authMw, s.orderHandlers.CreateOrder)
+	orderRoute.Patch("/", s.authMw, s.orderHandlers.UpdateOrder)
+
 	err := app.Listen(":3000")
 	if err != nil {
 		log.Fatal(err)

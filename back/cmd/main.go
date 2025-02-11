@@ -38,25 +38,26 @@ var logger zerolog.Logger
 func init() {
 	utils.LoadConfig()
 	logger = zerolog.New(os.Stderr)
+	ctx := context.Background()
 
-	conn := shared_repositories.NewMongoDB(context.TODO())
+	conn := shared_repositories.NewMongoDB(ctx)
 
 	// jwtKey := utils.GetConfig("jwt_key")
 
 	//repositories
-	userRepository := user_repositories.NewUserRepository(context.TODO(), constants.USERS_COLLECTION, conn.Database, &logger)
-	storeRepository := store_repositories.NewStoreRepository(context.TODO(), constants.STORES_COLLECTION, conn.Database, &logger)
-	productRepository := product_repositories.NewProductRepository(context.TODO(), constants.PRODUCTS_COLLECTION, conn.Database, &logger)
-	productHistoryRepository := product_repositories.NewProductHistoryRepository(context.TODO(), constants.PRODUCTS_HISTORY_COLLECTION, conn.Database, &logger)
-	orderRepository := order_repositories.NewOrderRepository(context.TODO(), constants.ORDERS_COLLECTION, conn.Database, &logger)
+	userRepository := user_repositories.NewUserRepository(ctx, constants.USERS_COLLECTION, conn.Database, &logger)
+	storeRepository := store_repositories.NewStoreRepository(ctx, constants.STORES_COLLECTION, conn.Database, &logger)
+	productRepository := product_repositories.NewProductRepository(ctx, constants.PRODUCTS_COLLECTION, conn.Database, &logger)
+	productHistoryRepository := product_repositories.NewProductHistoryRepository(ctx, constants.PRODUCTS_HISTORY_COLLECTION, conn.Database, &logger)
+	orderRepository := order_repositories.NewOrderRepository(ctx, constants.ORDERS_COLLECTION, conn.Database, &logger)
 
 	// Shared services
-	sharedProductService := shared_services.NewSharedProductService(context.TODO(), &logger, productRepository, productHistoryRepository)
+	sharedProductService := shared_services.NewSharedProductService(ctx, &logger, productRepository, productHistoryRepository)
 
 	eventType := shared_ports.UseSNS
 	if !IsLambda() {
 		eventType = shared_ports.UseBUS
-		handler := shared_handlers.NewEventsHandler(context.TODO(), &logger, sharedProductService)
+		handler := shared_handlers.NewEventsHandler(ctx, &logger, sharedProductService)
 
 		msgNow := time.Now()
 		shared_services.MessagingInit()
@@ -72,10 +73,10 @@ func init() {
 
 	// Services
 	// jwtService := shared_services.NewJwtService([]byte(jwtKey), &logger)
-	userService := user_services.NewUserService(context.TODO(), &logger, userRepository)
-	storeService := store_services.NewStoreService(context.TODO(), &logger, storeRepository)
-	productService := product_services.NewProductService(context.TODO(), &logger, productRepository, productHistoryRepository, sharedProductService, messaging)
-	orderService := order_services.NewOrderService(context.TODO(), &logger, orderRepository, messaging)
+	userService := user_services.NewUserService(ctx, &logger, userRepository)
+	storeService := store_services.NewStoreService(ctx, &logger, storeRepository)
+	productService := product_services.NewProductService(ctx, &logger, productRepository, productHistoryRepository, sharedProductService, messaging)
+	orderService := order_services.NewOrderService(ctx, &logger, orderRepository, messaging)
 
 	//handlers
 	userHandlers := user_handlers.NewUserHandler(userService)

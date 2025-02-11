@@ -32,6 +32,7 @@ func NewServer(
 		storeHandlers:   storeHandlers,
 		productHandlers: productHandlers,
 		orderHandlers:   orderHandlers,
+		authMw:          authMw,
 	}
 }
 

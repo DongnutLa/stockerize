@@ -18,16 +18,19 @@ import (
 type OrderService struct {
 	logger    *zerolog.Logger
 	orderRepo order_repositories.IOrderRepository
+	messaging shared_ports.IEventMessaging
 }
 
 func NewOrderService(
 	ctx context.Context,
 	logger *zerolog.Logger,
 	repository order_repositories.IOrderRepository,
+	messaging shared_ports.IEventMessaging,
 ) order_ports.IOrderService {
 	return &OrderService{
 		logger:    logger,
 		orderRepo: repository,
+		messaging: messaging,
 	}
 }
 

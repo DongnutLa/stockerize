@@ -19,6 +19,7 @@ type ProductService struct {
 	logger      *zerolog.Logger
 	productRepo product_repositories.IProductRepository
 	historyRepo product_repositories.IProductHistoryRepository
+	messaging   shared_ports.IEventMessaging
 }
 
 func NewProductService(
@@ -26,11 +27,13 @@ func NewProductService(
 	logger *zerolog.Logger,
 	repository product_repositories.IProductRepository,
 	historyRepo product_repositories.IProductHistoryRepository,
+	messaging shared_ports.IEventMessaging,
 ) product_ports.IProductService {
 	return &ProductService{
 		logger:      logger,
 		productRepo: repository,
 		historyRepo: historyRepo,
+		messaging:   messaging,
 	}
 }
 

@@ -75,6 +75,12 @@ var (
 		fiber.StatusInternalServerError,
 		11,
 	)
+	ErrFailedProductStockUpdate = NewApiError(
+		"Failed updating product stock",
+		ProductErrors,
+		fiber.StatusInternalServerError,
+		12,
+	)
 
 	ErrEmptyOrderProducts = NewApiError(
 		"Order products must not be empty",

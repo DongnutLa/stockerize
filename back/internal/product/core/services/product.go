@@ -2,7 +2,6 @@ package product_services
 
 import (
 	"context"
-	"math"
 	"time"
 
 	product_domain "github.com/DongnutLa/stockio/internal/product/core/domain"
@@ -12,14 +11,14 @@ import (
 	shared_domain "github.com/DongnutLa/stockio/internal/zshared/core/domain"
 	shared_ports "github.com/DongnutLa/stockio/internal/zshared/core/ports"
 	"github.com/rs/zerolog"
-	"github.com/samber/lo"
 )
 
 type ProductService struct {
-	logger      *zerolog.Logger
-	productRepo product_repositories.IProductRepository
-	historyRepo product_repositories.IProductHistoryRepository
-	messaging   shared_ports.IEventMessaging
+	logger               *zerolog.Logger
+	productRepo          product_repositories.IProductRepository
+	historyRepo          product_repositories.IProductHistoryRepository
+	sharedProductService shared_ports.ISharedProductService
+	messaging            shared_ports.IEventMessaging
 }
 
 func NewProductService(
@@ -27,13 +26,15 @@ func NewProductService(
 	logger *zerolog.Logger,
 	repository product_repositories.IProductRepository,
 	historyRepo product_repositories.IProductHistoryRepository,
+	sharedProductService shared_ports.ISharedProductService,
 	messaging shared_ports.IEventMessaging,
 ) product_ports.IProductService {
 	return &ProductService{
-		logger:      logger,
-		productRepo: repository,
-		historyRepo: historyRepo,
-		messaging:   messaging,
+		logger:               logger,
+		productRepo:          repository,
+		historyRepo:          historyRepo,
+		sharedProductService: sharedProductService,
+		messaging:            messaging,
 	}
 }
 
@@ -67,7 +68,7 @@ func (s *ProductService) CreateProduct(
 
 	s.logger.Info().Interface("product", product).Msg("Product successfully created")
 
-	s.createHistory(
+	s.sharedProductService.CreateHistory(
 		ctx,
 		product_domain.ProductHistoryPurchase,
 		stock.Quantity,
@@ -111,7 +112,7 @@ func (s *ProductService) UpdateProduct(ctx context.Context, productDto *product_
 		return nil, shared_domain.ErrFailedProductUpdate
 	}
 
-	s.createHistory(
+	s.sharedProductService.CreateHistory(
 		ctx,
 		product_domain.ProductHistoryInfo,
 		0,
@@ -130,107 +131,5 @@ func (s *ProductService) UpdateProduct(ctx context.Context, productDto *product_
 func (s *ProductService) UpdateProductStock(ctx context.Context, stockDto *product_domain.UpdateStockDTO, authUser *user_domain.User) (*product_domain.Product, *shared_domain.ApiError) {
 	s.logger.Info().Interface("stockDto", stockDto).Interface("user", authUser).Msg("Attempt to update product stock")
 
-	opts := shared_ports.FindOneOpts{Filter: map[string]interface{}{"_id": stockDto.ID}}
-	product := product_domain.Product{}
-	if err := s.productRepo.FindOne(ctx, opts, &product); err != nil {
-		s.logger.Error().Err(err).Interface("product", stockDto).Msg("Product update failed in find")
-		return nil, shared_domain.ErrFailedProductUpdate
-	}
-
-	stock := *product.Stock
-	historyType := product_domain.ProductHistoryInfo
-	switch stockDto.UpdateType {
-	case product_domain.StockInfo:
-		newStock := stock[len(stock)-1]
-		newStock.Cost = stockDto.Cost
-		newStock.Price = stockDto.Price
-
-		stock[len(stock)-1] = newStock
-		historyType = product_domain.ProductHistoryInfo
-	case product_domain.StockAdd:
-		newStock := stock[len(stock)-1]
-		newStock.Available += stockDto.Quantity
-		newStock.Quantity += stockDto.Quantity
-
-		stock[len(stock)-1] = newStock
-		historyType = product_domain.ProductHistoryIncrease
-	case product_domain.StockRelease:
-		toRelease := stockDto.Quantity
-		newStock := lo.Map(stock, func(item product_domain.Stock, _ int) product_domain.Stock {
-			if toRelease <= 0 {
-				return item
-			}
-
-			newQuantity := int64(math.Max(0, float64(item.Available)-float64(toRelease)))
-			if newQuantity > 0 {
-				toRelease = 0
-			} else {
-				toRelease -= item.Available
-			}
-
-			item.Quantity -= item.Available
-			item.Available = newQuantity
-			return item
-		})
-
-		stock = newStock
-		historyType = product_domain.ProductHistoryDecrease
-	}
-
-	updOpts := shared_ports.UpdateOpts{
-		Filter: map[string]interface{}{
-			"_id": product.ID,
-		},
-		Payload: &map[string]interface{}{
-			"stock": &stock,
-		},
-	}
-
-	res, err := s.productRepo.UpdateOne(ctx, updOpts)
-	if err != nil {
-		s.logger.Error().Err(err).Interface("stockDto", stockDto).Msg("Product stock update failed")
-		return nil, shared_domain.ErrFailedProductUpdate
-	}
-
-	s.createHistory(
-		ctx,
-		historyType,
-		stockDto.Quantity,
-		stockDto.Price,
-		stockDto.Price-stockDto.Cost,
-		"",
-		product.ID.Hex(),
-		product.Name,
-		product.Sku,
-		authUser,
-	)
-
-	return res, nil
-}
-
-func (s *ProductService) createHistory(
-	ctx context.Context,
-	hType product_domain.ProductHistoryType,
-	quantity int64,
-	price, gain float64,
-	unit product_domain.ProductUnit,
-	productId, productName, productSku string,
-	user *user_domain.User,
-) {
-	history := product_domain.NewHistory(
-		hType,
-		quantity,
-		price,
-		gain,
-		unit,
-		productId,
-		productName,
-		productSku,
-		user,
-	)
-	if err := s.historyRepo.InsertOne(ctx, *history); err != nil {
-		s.logger.Error().Err(err).Interface("history", history).Msg("Product history creation failed")
-	} else {
-		s.logger.Info().Interface("history", history).Msg("Product history successfully created")
-	}
+	return s.sharedProductService.UpdateProductStock(ctx, stockDto, authUser)
 }

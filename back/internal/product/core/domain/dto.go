@@ -16,9 +16,11 @@ type UpdateProductDTO struct {
 type StockUpdateType string
 
 const (
-	StockAdd     StockUpdateType = "ADD"
-	StockRelease StockUpdateType = "RELEASE"
-	StockInfo    StockUpdateType = "INFO" // price/cost change
+	StockIncrease StockUpdateType = "INCREASE"
+	StockDecrease StockUpdateType = "DECREASE"
+	StockInfo     StockUpdateType = "INFO" // price/cost change
+	StockPurchase StockUpdateType = "PURCHASE"
+	StockSale     StockUpdateType = "SALE"
 )
 
 type UpdateStockDTO struct {

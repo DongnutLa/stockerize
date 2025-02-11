@@ -74,7 +74,7 @@ func init() {
 	// jwtService := shared_services.NewJwtService([]byte(jwtKey), &logger)
 	userService := user_services.NewUserService(context.TODO(), &logger, userRepository)
 	storeService := store_services.NewStoreService(context.TODO(), &logger, storeRepository)
-	productService := product_services.NewProductService(context.TODO(), &logger, productRepository, productHistoryRepository, messaging)
+	productService := product_services.NewProductService(context.TODO(), &logger, productRepository, productHistoryRepository, sharedProductService, messaging)
 	orderService := order_services.NewOrderService(context.TODO(), &logger, orderRepository, messaging)
 
 	//handlers

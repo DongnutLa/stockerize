@@ -3,6 +3,7 @@ package product_services
 import (
 	"context"
 	"math"
+	"time"
 
 	product_domain "github.com/DongnutLa/stockio/internal/product/core/domain"
 	product_ports "github.com/DongnutLa/stockio/internal/product/core/ports"
@@ -89,12 +90,15 @@ func (s *ProductService) UpdateProduct(ctx context.Context, productDto *product_
 		return nil, shared_domain.ErrFailedProductUpdate
 	}
 
+	now := time.Now()
+
 	updOpts := shared_ports.UpdateOpts{
 		Filter: map[string]interface{}{
 			"_id": product.ID,
 		},
 		Payload: &map[string]interface{}{
-			"name": productDto.Name,
+			"name":      productDto.Name,
+			"updatedAt": &now,
 		},
 	}
 

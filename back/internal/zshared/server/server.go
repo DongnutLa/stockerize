@@ -16,7 +16,7 @@ type Server struct {
 	userHandlers    user_ports.IUserHandler
 	storeHandlers   store_ports.IStoreHandler
 	productHandlers product_ports.IProductHandler
-	orderHandlers   order_ports.OrderHandlers
+	orderHandlers   order_ports.IOrderHandler
 	authMw          fiber.Handler
 }
 
@@ -24,7 +24,7 @@ func NewServer(
 	userHandlers user_ports.IUserHandler,
 	storeHandlers store_ports.IStoreHandler,
 	productHandlers product_ports.IProductHandler,
-	orderHandlers order_ports.OrderHandlers,
+	orderHandlers order_ports.IOrderHandler,
 	authMw fiber.Handler,
 ) *Server {
 	return &Server{
@@ -47,6 +47,11 @@ func (s *Server) Initialize() {
 
 	storeRoute := v1.Group("/store")
 	storeRoute.Post("/", s.authMw, s.storeHandlers.CreateStore)
+
+	productRoute := v1.Group("/product")
+	productRoute.Post("/", s.authMw, s.productHandlers.CreateProduct)
+	productRoute.Patch("/", s.authMw, s.productHandlers.UpdateProduct)
+	productRoute.Put("/stock", s.authMw, s.productHandlers.UpdateProductStock)
 
 	err := app.Listen(":3000")
 	if err != nil {

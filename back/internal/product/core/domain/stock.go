@@ -20,17 +20,14 @@ type Stock struct {
 	ID        primitive.ObjectID `bson:"_id" json:"id"`
 	Cost      float64            `bson:"cost" json:"cost"`
 	Price     float64            `bson:"price" json:"price"`
-	Quantity  int64              `bson:"quantity" json:"quantity"`
-	Available int64              `bson:"available" json:"available"`
-	Sold      int64              `bson:"sold" json:"sold"`
+	Quantity  float64            `bson:"quantity" json:"quantity"`
+	Available float64            `bson:"available" json:"available"`
+	Sold      float64            `bson:"sold" json:"sold"`
 	CreatedAt *time.Time         `bson:"createdAt" json:"createdAt"`
 	UpdatedAt *time.Time         `bson:"updatedAt" json:"updatedAt"`
 }
 
-func NewStock(
-	cost, price float64,
-	quantity, available, sold int64,
-) *Stock {
+func NewStock(cost, price, quantity, available, sold float64) *Stock {
 	id := primitive.NewObjectID()
 	now := time.Now()
 

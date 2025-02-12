@@ -11,9 +11,11 @@ import (
 type IUserService interface {
 	CreateUser(ctx context.Context, userDto *user_domain.CreateUserDTO, authUser *user_domain.User) (*user_domain.User, *shared_domain.ApiError)
 	GoogleLogin(ctx context.Context, tokenUser *shared_domain.Claims) (*user_domain.User, *shared_domain.ApiError)
+	Login(ctx context.Context, loginDto *user_domain.LoginDTO) (*user_domain.User, *shared_domain.ApiError)
 }
 
 type IUserHandler interface {
 	CreateUser(c *fiber.Ctx) error
 	GoogleLogin(c *fiber.Ctx) error
+	Login(fiberCtx *fiber.Ctx) error
 }

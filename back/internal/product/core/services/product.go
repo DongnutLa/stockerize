@@ -38,6 +38,39 @@ func NewProductService(
 	}
 }
 
+func (s *ProductService) SearchProducts(
+	ctx context.Context,
+	queryParams *shared_domain.SearchQueryParams,
+	authUser *user_domain.User,
+) (*shared_domain.PagingResponse[product_domain.Product], *shared_domain.ApiError) {
+	skip := (queryParams.Page - 1) * queryParams.PageSize
+	result := []product_domain.Product{}
+	opts := shared_ports.FindManyOpts{
+		Take: queryParams.PageSize,
+		Skip: skip,
+		Filter: map[string]interface{}{
+			"$text":     map[string]string{"$search": queryParams.Search},
+			"store._id": authUser.Store.ID,
+		},
+	}
+	count, err := s.productRepo.FindMany(ctx, opts, &result, true)
+	if err != nil {
+		return nil, shared_domain.ErrFailedSearchProducts
+	}
+
+	response := shared_domain.PagingResponse[product_domain.Product]{
+		Metadata: shared_domain.Metadata{
+			Page:     queryParams.Page,
+			PageSize: queryParams.PageSize,
+			Count:    *count,
+			HasNext:  *count > (queryParams.Page * queryParams.PageSize),
+		},
+		Data: result,
+	}
+
+	return &response, nil
+}
+
 func (s *ProductService) CreateProduct(
 	ctx context.Context,
 	productDto *product_domain.CreateProductDTO,
@@ -102,6 +135,7 @@ func (s *ProductService) UpdateProduct(ctx context.Context, productDto *product_
 		},
 		Payload: &map[string]interface{}{
 			"name":      productDto.Name,
+			"sku":       productDto.Sku,
 			"updatedAt": &now,
 		},
 	}

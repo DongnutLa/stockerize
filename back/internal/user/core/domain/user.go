@@ -22,11 +22,14 @@ type User struct {
 	Status    UserStatus         `bson:"status" json:"status"`
 	Role      constants.UserRole `bson:"role" json:"role"`
 	Store     store_domain.Store `bson:"store" json:"store"`
-	Timestamp *time.Time         `bson:"timestamp" json:"timestamp"`
+	Password  string             `bson:"password" json:"-"`
+	Token     string             `bson:"-" json:"token"`
+	CreatedAt *time.Time         `bson:"createdAt" json:"createdAt"`
+	UpdatedAt *time.Time         `bson:"updatedAt" json:"updatedAt"`
 }
 
 func NewUser(
-	name, email string,
+	name, email, password string,
 	status UserStatus,
 	role constants.UserRole,
 	store store_domain.Store,
@@ -41,7 +44,9 @@ func NewUser(
 		Status:    status,
 		Role:      role,
 		Store:     store,
-		Timestamp: &now,
+		CreatedAt: &now,
+		UpdatedAt: &now,
+		Password:  password,
 	}
 }
 
@@ -50,4 +55,9 @@ type CreateUserDTO struct {
 	Email  string             `json:"email"`
 	Store  store_domain.Store `json:"store"`
 	Status string             `json:"status"`
+}
+
+type LoginDTO struct {
+	Email    string `json:"email"`
+	Password string `json:"Password"`
 }

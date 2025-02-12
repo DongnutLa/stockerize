@@ -10,18 +10,25 @@ import (
 	"github.com/DongnutLa/stockio/internal/zshared/constants"
 	shared_domain "github.com/DongnutLa/stockio/internal/zshared/core/domain"
 	shared_ports "github.com/DongnutLa/stockio/internal/zshared/core/ports"
-	shared_repositories "github.com/DongnutLa/stockio/internal/zshared/repositories"
 	"github.com/DongnutLa/stockio/internal/zshared/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
 	"google.golang.org/api/idtoken"
 )
 
-func NewAuthMiddleware(logger *zerolog.Logger, getUser bool) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		mongo := shared_repositories.GetMongoConnection()
-		repo := user_repositories.NewUserRepository(c.Context(), constants.USERS_COLLECTION, mongo, logger)
+var jwtService shared_ports.IJwtService
+var userRepo user_repositories.IUserRepository
 
+func NewAuthMiddleware(
+	jwt shared_ports.IJwtService,
+	repo user_repositories.IUserRepository,
+	logger *zerolog.Logger,
+	googleProvider bool,
+) fiber.Handler {
+	jwtService = jwt
+	userRepo = repo
+
+	return func(c *fiber.Ctx) error {
 		header := c.Get("Authorization")
 		headerSplitted := strings.Split(header, " ")
 		if len(header) == 0 || len(headerSplitted) != 2 {
@@ -32,41 +39,49 @@ func NewAuthMiddleware(logger *zerolog.Logger, getUser bool) fiber.Handler {
 
 		token := headerSplitted[1]
 
-		validator, err := idtoken.NewValidator(c.Context())
-		if err != nil {
-			logger.Log().Msg(fmt.Sprintf("TOKEN ERROR %s", err.Error()))
-			apiErr := shared_domain.ErrInvalidToken
-			return c.Status(apiErr.HttpStatusCode).JSON(apiErr)
-		}
+		var email string
+		if googleProvider {
+			validator, err := idtoken.NewValidator(c.Context())
+			if err != nil {
+				logger.Log().Msg(fmt.Sprintf("TOKEN ERROR %s", err.Error()))
+				apiErr := shared_domain.ErrInvalidToken
+				return c.Status(apiErr.HttpStatusCode).JSON(apiErr)
+			}
 
-		googleId := utils.GetConfig("google_id")
-		payload, err := validator.Validate(c.Context(), token, googleId)
-		if err != nil || payload == nil {
-			logger.Log().Msg(fmt.Sprintf("TOKEN ERROR %s", err.Error()))
-			apiErr := shared_domain.ErrInvalidToken
-			return c.Status(apiErr.HttpStatusCode).JSON(apiErr)
-		}
+			googleId := utils.GetConfig("google_id")
+			payload, err := validator.Validate(c.Context(), token, googleId)
+			if err != nil || payload == nil {
+				logger.Log().Msg(fmt.Sprintf("TOKEN ERROR %s", err.Error()))
+				apiErr := shared_domain.ErrInvalidToken
+				return c.Status(apiErr.HttpStatusCode).JSON(apiErr)
+			}
 
-		var claims shared_domain.Claims
-		jsonData, _ := json.Marshal(payload.Claims)
-		json.Unmarshal(jsonData, &claims)
+			var googleClaims shared_domain.GoogleClaims
+			jsonData, _ := json.Marshal(payload.Claims)
+			json.Unmarshal(jsonData, &googleClaims)
+			email = googleClaims.Email
+		} else {
+			claims, apiErr := jwtService.VerifyJWT(token)
+			if apiErr != nil {
+				return c.Status(apiErr.HttpStatusCode).JSON(apiErr)
+			}
+			email = claims.Email
+		}
 
 		opts := shared_ports.FindOneOpts{
-			Filter: map[string]interface{}{"email": claims.Email},
+			Filter: map[string]interface{}{"email": email},
 		}
 
 		var user user_domain.User
-		if getUser {
-			err := repo.FindOne(c.Context(), opts, &user)
-			if err != nil {
-				logger.Err(err).Msg("ERROR | Getting user in auth middleware")
-			} else {
-				c.Locals(constants.AUTH_USER_KEY, &user)
-				logger.Info().Interface("user", user).Msg("INFO | Auth middleware")
-			}
+		err := userRepo.FindOne(c.Context(), opts, &user)
+		if err != nil {
+			logger.Err(err).Msg("ERROR | Getting user in auth middleware")
+			apiErr := shared_domain.ErrAuthUserNotFound
+			return c.Status(apiErr.HttpStatusCode).JSON(apiErr)
 		}
 
-		c.Locals(constants.AUTH_USER_TOKEN_KEY, &claims)
+		c.Locals(constants.AUTH_USER_KEY, &user)
+		logger.Info().Interface("user", user).Msg("INFO | Auth middleware")
 		return c.Next()
 	}
 }

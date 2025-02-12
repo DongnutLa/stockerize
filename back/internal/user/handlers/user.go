@@ -28,12 +28,29 @@ func (c *UserHandler) GoogleLogin(fiberCtx *fiber.Ctx) error {
 	return fiberCtx.Status(fiber.StatusOK).JSON(user)
 }
 
+func (c *UserHandler) Login(fiberCtx *fiber.Ctx) error {
+	loginDto := user_domain.LoginDTO{}
+	err := fiberCtx.BodyParser(&loginDto)
+	if err != nil {
+		bodyErr := shared_domain.ErrFailedToParseBody
+		return fiberCtx.Status(bodyErr.HttpStatusCode).JSON(bodyErr)
+	}
+
+	user, apiErr := c.userService.Login(fiberCtx.Context(), &loginDto)
+	if apiErr != nil {
+		return fiberCtx.Status(apiErr.HttpStatusCode).JSON(apiErr)
+	}
+
+	return fiberCtx.Status(fiber.StatusOK).JSON(user)
+}
+
 func (c *UserHandler) CreateUser(fiberCtx *fiber.Ctx) error {
-	authUser := fiberCtx.Locals(constants.AUTH_USER_KEY).(*user_domain.User)
-	if authUser == nil {
+	auth := fiberCtx.Locals(constants.AUTH_USER_KEY)
+	if auth == nil {
 		authErr := shared_domain.ErrAuthUserNotFound
 		return fiberCtx.Status(authErr.HttpStatusCode).JSON(authErr)
 	}
+	authUser := auth.(*user_domain.User)
 
 	userDto := user_domain.CreateUserDTO{}
 	err := fiberCtx.BodyParser(&userDto)

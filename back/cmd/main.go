@@ -42,7 +42,7 @@ func init() {
 
 	conn := shared_repositories.NewMongoDB(ctx)
 
-	// jwtKey := utils.GetConfig("jwt_key")
+	jwtKey := utils.GetConfig("jwt_key")
 
 	//repositories
 	userRepository := user_repositories.NewUserRepository(ctx, constants.USERS_COLLECTION, conn.Database, &logger)
@@ -72,8 +72,8 @@ func init() {
 	messaging := shared_services.NewEventMessaging(&logger, eventType)
 
 	// Services
-	// jwtService := shared_services.NewJwtService([]byte(jwtKey), &logger)
-	userService := user_services.NewUserService(ctx, &logger, userRepository)
+	jwtService := shared_services.NewJwtService([]byte(jwtKey), &logger)
+	userService := user_services.NewUserService(ctx, &logger, userRepository, jwtService)
 	storeService := store_services.NewStoreService(ctx, &logger, storeRepository)
 	productService := product_services.NewProductService(ctx, &logger, productRepository, productHistoryRepository, sharedProductService, messaging)
 	orderService := order_services.NewOrderService(ctx, &logger, orderRepository, messaging)
@@ -85,7 +85,7 @@ func init() {
 	orderHandlers := order_handlers.NewOrderHandlers(orderService)
 
 	//Middlewares
-	auth := middlewares.NewAuthMiddleware(&logger, true)
+	auth := middlewares.NewAuthMiddleware(jwtService, userRepository, &logger, false)
 
 	//server
 	httpServer := server.NewServer(

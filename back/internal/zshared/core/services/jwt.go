@@ -3,6 +3,7 @@ package shared_services
 import (
 	"time"
 
+	user_domain "github.com/DongnutLa/stockio/internal/user/core/domain"
 	shared_domain "github.com/DongnutLa/stockio/internal/zshared/core/domain"
 	shared_ports "github.com/DongnutLa/stockio/internal/zshared/core/ports"
 	"github.com/golang-jwt/jwt/v4"
@@ -14,22 +15,18 @@ type JwtService struct {
 	jwtKey []byte
 }
 
-var _ shared_ports.JwtService = (*JwtService)(nil)
-
-func NewJwtService(jwtKey []byte, logger *zerolog.Logger) *JwtService {
+func NewJwtService(jwtKey []byte, logger *zerolog.Logger) shared_ports.IJwtService {
 	return &JwtService{
 		logger: logger,
 		jwtKey: jwtKey,
 	}
 }
 
-func (j *JwtService) GenerateJWT(id, email, name string) (string, *shared_domain.ApiError) {
-	expirationTime := time.Now().Add(24 * time.Hour)
+func (j *JwtService) GenerateJWT(authUser user_domain.User) (string, *shared_domain.ApiError) {
+	expirationTime := time.Now().Add(24 * time.Hour * 30)
 
 	claims := &shared_domain.Claims{
-		ID:    id,
-		Email: email,
-		Name:  name,
+		User: authUser,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},

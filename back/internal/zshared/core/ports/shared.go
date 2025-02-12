@@ -14,8 +14,7 @@ type ISharedProductService interface {
 	CreateHistory(
 		ctx context.Context,
 		hType product_domain.ProductHistoryType,
-		quantity int64,
-		price, gain float64,
+		quantity, price, gain float64,
 		unit product_domain.ProductUnit,
 		productId, productName, productSku string,
 		user *user_domain.User,

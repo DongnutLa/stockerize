@@ -43,13 +43,15 @@ func (s *Server) Initialize() {
 	v1 := app.Group("/v1")
 
 	userRoute := v1.Group("/user")
-	userRoute.Get("/login", s.authMw, s.userHandlers.GoogleLogin)
+	userRoute.Get("/login/google", s.authMw, s.userHandlers.GoogleLogin)
+	userRoute.Post("/login", s.userHandlers.Login)
 	userRoute.Post("/", s.authMw, s.userHandlers.CreateUser)
 
 	storeRoute := v1.Group("/store")
 	storeRoute.Post("/", s.authMw, s.storeHandlers.CreateStore)
 
 	productRoute := v1.Group("/product")
+	productRoute.Get("/", s.authMw, s.productHandlers.SearchProducts)
 	productRoute.Post("/", s.authMw, s.productHandlers.CreateProduct)
 	productRoute.Patch("/", s.authMw, s.productHandlers.UpdateProduct)
 	productRoute.Put("/stock", s.authMw, s.productHandlers.UpdateProductStock)

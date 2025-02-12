@@ -3,6 +3,7 @@ package shared_services
 import (
 	"context"
 	"math"
+	"slices"
 
 	product_domain "github.com/DongnutLa/stockio/internal/product/core/domain"
 	product_repositories "github.com/DongnutLa/stockio/internal/product/repositories"
@@ -52,6 +53,8 @@ func (s *SharedProductService) UpdateProductStock(ctx context.Context, stockDto 
 	}
 
 	stock := *product.Stock
+	slices.SortStableFunc(stock, utils.SortStock)
+
 	historyType := product_domain.ProductHistoryInfo
 	switch stockDto.UpdateType {
 	case product_domain.StockInfo:
@@ -70,7 +73,7 @@ func (s *SharedProductService) UpdateProductStock(ctx context.Context, stockDto 
 		historyType = product_domain.ProductHistoryIncrease
 	case product_domain.StockDecrease:
 		toRelease := stockDto.Quantity
-		newStock := lo.Map(stock, s.stockRelease(toRelease))
+		newStock := lo.Map(stock, stockDecrease(toRelease))
 
 		stock = newStock
 		historyType = product_domain.ProductHistoryDecrease
@@ -80,7 +83,7 @@ func (s *SharedProductService) UpdateProductStock(ctx context.Context, stockDto 
 		historyType = product_domain.ProductHistoryPurchase
 	case product_domain.StockSale:
 		toRelease := stockDto.Quantity
-		newStock := lo.Map(stock, s.stockRelease(toRelease))
+		newStock := lo.Map(stock, stockSale(toRelease))
 
 		stock = newStock
 		historyType = product_domain.ProductHistorySale
@@ -104,12 +107,15 @@ func (s *SharedProductService) UpdateProductStock(ctx context.Context, stockDto 
 		s.logger.Info().Interface("product", res).Msg("Product stock updated successfully")
 	}
 
+	currPrice := (*res.Stock)[len(*res.Stock)-1].Price
+	currCost := (*res.Stock)[len(*res.Stock)-1].Cost
+
 	s.CreateHistory(
 		ctx,
 		historyType,
 		stockDto.Quantity,
-		stockDto.Price,
-		stockDto.Price-stockDto.Cost,
+		currPrice,
+		currPrice-currCost,
 		"",
 		product.ID.Hex(),
 		product.Name,
@@ -123,8 +129,7 @@ func (s *SharedProductService) UpdateProductStock(ctx context.Context, stockDto 
 func (s *SharedProductService) CreateHistory(
 	ctx context.Context,
 	hType product_domain.ProductHistoryType,
-	quantity int64,
-	price, gain float64,
+	quantity, price, gain float64,
 	unit product_domain.ProductUnit,
 	productId, productName, productSku string,
 	user *user_domain.User,
@@ -147,21 +152,49 @@ func (s *SharedProductService) CreateHistory(
 	}
 }
 
-func (s *SharedProductService) stockRelease(toRelease int64) func(item product_domain.Stock, _ int) product_domain.Stock {
+func stockDecrease(toRelease float64) func(item product_domain.Stock, _ int) product_domain.Stock {
 	return func(item product_domain.Stock, _ int) product_domain.Stock {
-		if toRelease <= 0 {
+		if toRelease <= 0 || item.Available <= 0 {
 			return item
 		}
 
-		newQuantity := int64(math.Max(0, float64(item.Available)-float64(toRelease)))
-		if newQuantity > 0 {
+		newAvailable := math.Max(0, item.Available-toRelease)
+		newQuantity := math.Max(0, item.Quantity-toRelease)
+
+		if newAvailable > 0 {
 			toRelease = 0
 		} else {
+			// New available == 0
 			toRelease -= item.Available
 		}
 
-		item.Quantity -= item.Available
-		item.Available = newQuantity
+		item.Quantity = newQuantity
+		item.Available = newAvailable
+
+		return item
+	}
+}
+
+func stockSale(toRelease float64) func(item product_domain.Stock, _ int) product_domain.Stock {
+	return func(item product_domain.Stock, _ int) product_domain.Stock {
+		if toRelease <= 0 || item.Available <= 0 {
+			return item
+		}
+
+		addToSold := float64(0)
+		newAvailable := math.Max(0, item.Available-toRelease)
+		if newAvailable > 0 {
+			addToSold = toRelease
+			toRelease = 0
+		} else {
+			// New available == 0
+			toRelease -= item.Available
+			addToSold = item.Available
+		}
+
+		item.Available = newAvailable
+		item.Sold += addToSold
+
 		return item
 	}
 }

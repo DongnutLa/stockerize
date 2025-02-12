@@ -19,6 +19,27 @@ func NewProductHandlers(productService product_ports.IProductService) product_po
 	}
 }
 
+func (h *ProductHandler) SearchProducts(fiberCtx *fiber.Ctx) error {
+	authUser := fiberCtx.Locals(constants.AUTH_USER_KEY).(*user_domain.User)
+	if authUser == nil {
+		authErr := shared_domain.ErrAuthUserNotFound
+		return fiberCtx.Status(authErr.HttpStatusCode).JSON(authErr)
+	}
+
+	queryParams := shared_domain.SearchQueryParams{}
+	if err := fiberCtx.QueryParser(&queryParams); err != nil {
+		bodyErr := shared_domain.ErrFailedToParseBody
+		return fiberCtx.Status(bodyErr.HttpStatusCode).JSON(bodyErr)
+	}
+
+	response, apiErr := h.productService.SearchProducts(fiberCtx.Context(), &queryParams, authUser)
+	if apiErr != nil {
+		return fiberCtx.Status(apiErr.HttpStatusCode).JSON(apiErr)
+	}
+
+	return fiberCtx.Status(fiber.StatusOK).JSON(response)
+}
+
 func (h *ProductHandler) CreateProduct(fiberCtx *fiber.Ctx) error {
 	authUser := fiberCtx.Locals(constants.AUTH_USER_KEY).(*user_domain.User)
 	if authUser == nil {
@@ -38,7 +59,7 @@ func (h *ProductHandler) CreateProduct(fiberCtx *fiber.Ctx) error {
 		return fiberCtx.Status(apiErr.HttpStatusCode).JSON(apiErr)
 	}
 
-	return fiberCtx.Status(fiber.StatusOK).JSON(product)
+	return fiberCtx.Status(fiber.StatusCreated).JSON(product)
 }
 
 func (h *ProductHandler) UpdateProduct(fiberCtx *fiber.Ctx) error {
@@ -60,7 +81,7 @@ func (h *ProductHandler) UpdateProduct(fiberCtx *fiber.Ctx) error {
 		return fiberCtx.Status(apiErr.HttpStatusCode).JSON(apiErr)
 	}
 
-	return fiberCtx.Status(fiber.StatusOK).JSON(product)
+	return fiberCtx.Status(fiber.StatusCreated).JSON(product)
 }
 
 func (h *ProductHandler) UpdateProductStock(fiberCtx *fiber.Ctx) error {
@@ -82,5 +103,5 @@ func (h *ProductHandler) UpdateProductStock(fiberCtx *fiber.Ctx) error {
 		return fiberCtx.Status(apiErr.HttpStatusCode).JSON(apiErr)
 	}
 
-	return fiberCtx.Status(fiber.StatusOK).JSON(product)
+	return fiberCtx.Status(fiber.StatusCreated).JSON(product)
 }

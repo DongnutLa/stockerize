@@ -20,8 +20,13 @@ func NewStoreHandlers(storeService store_ports.IStoreService) store_ports.IStore
 }
 
 func (h *StoreHandler) CreateStore(fiberCtx *fiber.Ctx) error {
-	authUser := fiberCtx.Locals(constants.AUTH_USER_KEY).(*user_domain.User)
-	if authUser == nil || authUser.Role != constants.SudoRole {
+	auth := fiberCtx.Locals(constants.AUTH_USER_KEY)
+	if auth == nil {
+		authErr := shared_domain.ErrAuthUserNotFound
+		return fiberCtx.Status(authErr.HttpStatusCode).JSON(authErr)
+	}
+	authUser := auth.(*user_domain.User)
+	if authUser.Role != constants.SudoRole {
 		authErr := shared_domain.ErrAuthUserNotFound
 		return fiberCtx.Status(authErr.HttpStatusCode).JSON(authErr)
 	}
@@ -33,7 +38,7 @@ func (h *StoreHandler) CreateStore(fiberCtx *fiber.Ctx) error {
 		return fiberCtx.Status(bodyErr.HttpStatusCode).JSON(bodyErr)
 	}
 
-	store, apiErr := h.storeService.CreateStore(fiberCtx.Context(), &storeDto, authUser)
+	store, apiErr := h.storeService.CreateStore(fiberCtx.Context(), &storeDto)
 	if apiErr != nil {
 		return fiberCtx.Status(apiErr.HttpStatusCode).JSON(apiErr)
 	}

@@ -20,7 +20,7 @@ const (
 type History struct {
 	ID          primitive.ObjectID `bson:"_id" json:"id"`
 	Type        ProductHistoryType `bson:"type" json:"type"`
-	Quantity    int64              `bson:"quantity" json:"quantity"`
+	Quantity    float64            `bson:"quantity" json:"quantity"`
 	Price       float64            `bson:"price" json:"price"`
 	Gain        float64            `bson:"gain" json:"gain"`
 	Unit        ProductUnit        `bson:"unit" json:"unit"`
@@ -33,8 +33,7 @@ type History struct {
 
 func NewHistory(
 	htype ProductHistoryType,
-	quantity int64,
-	price, gain float64,
+	quantity, price, gain float64,
 	unit ProductUnit,
 	productId, productName, productSku string,
 	user *user_domain.User,

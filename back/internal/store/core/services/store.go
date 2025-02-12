@@ -6,7 +6,6 @@ import (
 	store_domain "github.com/DongnutLa/stockio/internal/store/core/domain"
 	store_ports "github.com/DongnutLa/stockio/internal/store/core/ports"
 	store_repositories "github.com/DongnutLa/stockio/internal/store/repositories"
-	user_domain "github.com/DongnutLa/stockio/internal/user/core/domain"
 	shared_domain "github.com/DongnutLa/stockio/internal/zshared/core/domain"
 	"github.com/rs/zerolog"
 )
@@ -27,7 +26,7 @@ func NewStoreService(
 	}
 }
 
-func (s *StoreService) CreateStore(ctx context.Context, storeDto *store_domain.CreateStoreDTO, authUser *user_domain.User) (*store_domain.Store, *shared_domain.ApiError) {
+func (s *StoreService) CreateStore(ctx context.Context, storeDto *store_domain.CreateStoreDTO) (*store_domain.Store, *shared_domain.ApiError) {
 	newStore := store_domain.NewStore(
 		storeDto.Name,
 		storeDto.Contact,

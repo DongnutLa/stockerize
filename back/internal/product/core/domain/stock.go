@@ -17,14 +17,14 @@ const (
 )
 
 type Stock struct {
-	ID        primitive.ObjectID `bson:"_id" json:"id"`
+	ID        primitive.ObjectID `bson:"_id" json:"id,omitempty"`
 	Cost      float64            `bson:"cost" json:"cost"`
 	Price     float64            `bson:"price" json:"price"`
 	Quantity  float64            `bson:"quantity" json:"quantity"`
 	Available float64            `bson:"available" json:"available"`
 	Sold      float64            `bson:"sold" json:"sold"`
-	CreatedAt *time.Time         `bson:"createdAt" json:"createdAt"`
-	UpdatedAt *time.Time         `bson:"updatedAt" json:"updatedAt"`
+	CreatedAt *time.Time         `bson:"createdAt" json:"createdAt,omitempty"`
+	UpdatedAt *time.Time         `bson:"updatedAt" json:"updatedAt,omitempty"`
 }
 
 func NewStock(cost, price, quantity, available, sold float64) *Stock {

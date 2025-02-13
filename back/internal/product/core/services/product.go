@@ -46,6 +46,10 @@ func (s *ProductService) GetById(ctx context.Context, id string, authUser *user_
 		return nil, apiErr
 	}
 
+	product.StockSummary = totalizeStock(*product.Stock)
+	product.Stock = nil
+	product.Store = nil
+
 	return product, nil
 }
 func (s *ProductService) GetHistory(ctx context.Context, id string, authUser *user_domain.User) (*[]product_domain.History, *shared_domain.ApiError) {
@@ -103,7 +107,13 @@ func (s *ProductService) SearchProducts(
 			Count:    *count,
 			HasNext:  *count > (queryParams.Page * queryParams.PageSize),
 		},
-		Data: result,
+		Data: lo.Map(result, func(item product_domain.Product, _ int) product_domain.Product {
+			newItem := item
+			newItem.StockSummary = totalizeStock(*newItem.Stock)
+			newItem.Stock = nil
+			newItem.Store = nil
+			return newItem
+		}),
 	}
 
 	return &response, nil
@@ -155,23 +165,6 @@ func (s *ProductService) CreateProduct(
 	return product, nil
 }
 
-func (s *ProductService) findProductById(ctx context.Context, id string, authUser *user_domain.User) (*product_domain.Product, *shared_domain.ApiError) {
-	opts := shared_ports.FindOneOpts{
-		Filter: map[string]interface{}{
-			"_id":       id,
-			"store._id": authUser.Store.ID,
-		},
-	}
-
-	product := product_domain.Product{}
-	if err := s.productRepo.FindOne(ctx, opts, &product); err != nil {
-		s.logger.Error().Err(err).Interface("product", id).Msg("Find product failed")
-		return nil, shared_domain.ErrFailedProductUpdate
-	}
-
-	return &product, nil
-}
-
 func (s *ProductService) UpdateProduct(ctx context.Context, productDto *product_domain.UpdateProductDTO, authUser *user_domain.User) (*product_domain.Product, *shared_domain.ApiError) {
 	s.logger.Info().Interface("productDto", productDto).Interface("user", authUser).Msg("Attempt to update product")
 
@@ -219,4 +212,40 @@ func (s *ProductService) UpdateProductStock(ctx context.Context, stockDto *produ
 	s.logger.Info().Interface("stockDto", stockDto).Interface("user", authUser).Msg("Attempt to update product stock")
 
 	return s.sharedProductService.UpdateProductStock(ctx, stockDto, authUser)
+}
+
+// PRIVATE METHODS
+func (s *ProductService) findProductById(ctx context.Context, id string, authUser *user_domain.User) (*product_domain.Product, *shared_domain.ApiError) {
+	opts := shared_ports.FindOneOpts{
+		Filter: map[string]interface{}{
+			"_id":       id,
+			"store._id": authUser.Store.ID,
+		},
+	}
+
+	product := product_domain.Product{}
+	if err := s.productRepo.FindOne(ctx, opts, &product); err != nil {
+		s.logger.Error().Err(err).Interface("product", id).Msg("Find product failed")
+		return nil, shared_domain.ErrFailedProductUpdate
+	}
+
+	return &product, nil
+}
+
+func totalizeStock(stocks []product_domain.Stock) *product_domain.Stock {
+	reduceFunc := func(acc, curr product_domain.Stock, _ int) product_domain.Stock {
+		return product_domain.Stock{
+			Available: acc.Available + curr.Available,
+			Quantity:  acc.Quantity + curr.Quantity,
+			Sold:      acc.Sold + curr.Sold,
+			Cost:      curr.Cost,
+			Price:     curr.Price,
+			ID:        primitive.NilObjectID,
+			CreatedAt: nil,
+			UpdatedAt: nil,
+		}
+	}
+
+	totalizedStock := lo.Reduce(stocks, reduceFunc, product_domain.Stock{})
+	return &totalizedStock
 }

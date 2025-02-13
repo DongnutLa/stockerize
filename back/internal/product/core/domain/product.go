@@ -8,14 +8,15 @@ import (
 )
 
 type Product struct {
-	ID        primitive.ObjectID  `bson:"_id" json:"id"`
-	Name      string              `bson:"name" json:"name"`
-	Sku       string              `bson:"sku" json:"sku"`
-	Store     *store_domain.Store `bson:"store" json:"store"`
-	Stock     *[]Stock            `bson:"stock" json:"stock"`
-	Unit      ProductUnit         `bson:"unit" json:"unit"`
-	CreatedAt *time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdatedAt *time.Time          `bson:"updatedAt" json:"updatedAt"`
+	ID           primitive.ObjectID  `bson:"_id" json:"id"`
+	Name         string              `bson:"name" json:"name"`
+	Sku          string              `bson:"sku" json:"sku"`
+	Store        *store_domain.Store `bson:"store" json:"store,omitempty"`
+	Stock        *[]Stock            `bson:"stock" json:"stock,omitempty"`
+	Unit         ProductUnit         `bson:"unit" json:"unit"`
+	CreatedAt    *time.Time          `bson:"createdAt" json:"createdAt,omitempty"`
+	UpdatedAt    *time.Time          `bson:"updatedAt" json:"updatedAt,omitempty"`
+	StockSummary *Stock              `json:"stockSummary"`
 }
 
 func NewProduct(

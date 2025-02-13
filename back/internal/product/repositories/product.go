@@ -32,6 +32,7 @@ func NewProductRepository(ctx context.Context, collection string, connection *mo
 
 func getProductIndexes() []mongo.IndexModel {
 	search_product_index := "search_product_index"
+	store_product_index := "store_product_index"
 
 	searchProductIdx := mongo.IndexModel{
 		Keys: bson.D{
@@ -43,6 +44,15 @@ func getProductIndexes() []mongo.IndexModel {
 			Name: &search_product_index,
 		},
 	}
+	storeProductIdx := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "_id", Value: 1},
+			{Key: "store._id", Value: 1},
+		},
+		Options: &options.IndexOptions{
+			Name: &store_product_index,
+		},
+	}
 
-	return []mongo.IndexModel{searchProductIdx}
+	return []mongo.IndexModel{searchProductIdx, storeProductIdx}
 }

@@ -10,6 +10,8 @@ import (
 )
 
 type IProductService interface {
+	GetById(ctx context.Context, id string, authUser *user_domain.User) (*product_domain.Product, *shared_domain.ApiError)
+	GetHistory(ctx context.Context, id string, authUser *user_domain.User) (*[]product_domain.History, *shared_domain.ApiError)
 	SearchProducts(ctx context.Context, queryParams *shared_domain.SearchQueryParams, authUser *user_domain.User) (*shared_domain.PagingResponse[product_domain.Product], *shared_domain.ApiError)
 	CreateProduct(ctx context.Context, productDto *product_domain.CreateProductDTO, authUser *user_domain.User) (*product_domain.Product, *shared_domain.ApiError)
 	UpdateProduct(ctx context.Context, productDto *product_domain.UpdateProductDTO, authUser *user_domain.User) (*product_domain.Product, *shared_domain.ApiError)
@@ -17,6 +19,8 @@ type IProductService interface {
 }
 
 type IProductHandler interface {
+	GetById(c *fiber.Ctx) error
+	GetHistory(c *fiber.Ctx) error
 	SearchProducts(c *fiber.Ctx) error
 	CreateProduct(c *fiber.Ctx) error
 	UpdateProduct(c *fiber.Ctx) error

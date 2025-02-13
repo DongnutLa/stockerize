@@ -9,6 +9,7 @@ type FindManyOpts struct {
 	Filter map[string]interface{}
 	Skip   int64
 	Take   int64
+	Sort   map[string]interface{}
 }
 type DeleteOpts struct {
 	Filter map[string]interface{}

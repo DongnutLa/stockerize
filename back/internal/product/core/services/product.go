@@ -11,6 +11,8 @@ import (
 	shared_domain "github.com/DongnutLa/stockio/internal/zshared/core/domain"
 	shared_ports "github.com/DongnutLa/stockio/internal/zshared/core/ports"
 	"github.com/rs/zerolog"
+	"github.com/samber/lo"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ProductService struct {
@@ -36,6 +38,42 @@ func NewProductService(
 		sharedProductService: sharedProductService,
 		messaging:            messaging,
 	}
+}
+
+func (s *ProductService) GetById(ctx context.Context, id string, authUser *user_domain.User) (*product_domain.Product, *shared_domain.ApiError) {
+	product, apiErr := s.findProductById(ctx, id, authUser)
+	if apiErr != nil {
+		return nil, apiErr
+	}
+
+	return product, nil
+}
+func (s *ProductService) GetHistory(ctx context.Context, id string, authUser *user_domain.User) (*[]product_domain.History, *shared_domain.ApiError) {
+	productId, _ := primitive.ObjectIDFromHex(id)
+	var history []product_domain.History
+	opts := shared_ports.FindManyOpts{
+		Filter: map[string]interface{}{
+			"productId":      productId,
+			"user.store._id": authUser.Store.ID,
+		},
+		Sort: map[string]interface{}{
+			"createdAt": 1,
+		},
+	}
+
+	_, err := s.historyRepo.FindMany(ctx, opts, &history, false)
+	if err != nil {
+		apiErr := shared_domain.ErrFailedFetchProductHistory
+		return nil, apiErr
+	}
+
+	newHistory := lo.Map(history, func(itt product_domain.History, _ int) product_domain.History {
+		item := itt
+		item.User = nil
+		return item
+	})
+
+	return &newHistory, nil
 }
 
 func (s *ProductService) SearchProducts(
@@ -117,14 +155,29 @@ func (s *ProductService) CreateProduct(
 	return product, nil
 }
 
+func (s *ProductService) findProductById(ctx context.Context, id string, authUser *user_domain.User) (*product_domain.Product, *shared_domain.ApiError) {
+	opts := shared_ports.FindOneOpts{
+		Filter: map[string]interface{}{
+			"_id":       id,
+			"store._id": authUser.Store.ID,
+		},
+	}
+
+	product := product_domain.Product{}
+	if err := s.productRepo.FindOne(ctx, opts, &product); err != nil {
+		s.logger.Error().Err(err).Interface("product", id).Msg("Find product failed")
+		return nil, shared_domain.ErrFailedProductUpdate
+	}
+
+	return &product, nil
+}
+
 func (s *ProductService) UpdateProduct(ctx context.Context, productDto *product_domain.UpdateProductDTO, authUser *user_domain.User) (*product_domain.Product, *shared_domain.ApiError) {
 	s.logger.Info().Interface("productDto", productDto).Interface("user", authUser).Msg("Attempt to update product")
 
-	opts := shared_ports.FindOneOpts{Filter: map[string]interface{}{"_id": productDto.ID}}
-	product := product_domain.Product{}
-	if err := s.productRepo.FindOne(ctx, opts, &product); err != nil {
-		s.logger.Error().Err(err).Interface("product", productDto).Msg("Product update failed in find")
-		return nil, shared_domain.ErrFailedProductUpdate
+	product, apiErr := s.findProductById(ctx, productDto.ID, authUser)
+	if apiErr != nil {
+		return nil, apiErr
 	}
 
 	now := time.Now()

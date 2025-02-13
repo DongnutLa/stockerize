@@ -62,6 +62,9 @@ func (r *AbstractRepository[T, Q]) FindMany(ctx context.Context, opts shared_por
 	if opts.Skip > 0 {
 		findOtps.SetSkip(opts.Skip)
 	}
+	if len(opts.Sort) > 0 {
+		findOtps.SetSort(opts.Sort)
+	}
 
 	cur, err := r.collection.Find(ctx, filterBson, findOtps)
 	if err != nil {

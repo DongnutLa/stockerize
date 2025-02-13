@@ -88,6 +88,13 @@ var (
 		13,
 	)
 
+	ErrFailedFetchProductHistory = NewApiError(
+		"Failed fetching product history",
+		ProductErrors,
+		fiber.StatusInternalServerError,
+		14,
+	)
+
 	ErrEmptyOrderProducts = NewApiError(
 		"Order products must not be empty",
 		OrderErrors,

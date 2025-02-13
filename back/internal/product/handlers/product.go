@@ -19,6 +19,38 @@ func NewProductHandlers(productService product_ports.IProductService) product_po
 	}
 }
 
+func (h *ProductHandler) GetById(fiberCtx *fiber.Ctx) error {
+	authUser := fiberCtx.Locals(constants.AUTH_USER_KEY).(*user_domain.User)
+	if authUser == nil {
+		authErr := shared_domain.ErrAuthUserNotFound
+		return fiberCtx.Status(authErr.HttpStatusCode).JSON(authErr)
+	}
+
+	id := fiberCtx.Params("id")
+	product, err := h.productService.GetById(fiberCtx.Context(), id, authUser)
+	if err != nil {
+		return fiberCtx.Status(err.HttpStatusCode).JSON(err)
+	}
+
+	return fiberCtx.Status(fiber.StatusOK).JSON(product)
+}
+
+func (h *ProductHandler) GetHistory(fiberCtx *fiber.Ctx) error {
+	authUser := fiberCtx.Locals(constants.AUTH_USER_KEY).(*user_domain.User)
+	if authUser == nil {
+		authErr := shared_domain.ErrAuthUserNotFound
+		return fiberCtx.Status(authErr.HttpStatusCode).JSON(authErr)
+	}
+
+	id := fiberCtx.Params("id")
+	history, err := h.productService.GetHistory(fiberCtx.Context(), id, authUser)
+	if err != nil {
+		return fiberCtx.Status(err.HttpStatusCode).JSON(err)
+	}
+
+	return fiberCtx.Status(fiber.StatusOK).JSON(history)
+}
+
 func (h *ProductHandler) SearchProducts(fiberCtx *fiber.Ctx) error {
 	authUser := fiberCtx.Locals(constants.AUTH_USER_KEY).(*user_domain.User)
 	if authUser == nil {

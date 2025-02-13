@@ -52,6 +52,8 @@ func (s *Server) Initialize() {
 
 	productRoute := v1.Group("/product")
 	productRoute.Get("/", s.authMw, s.productHandlers.SearchProducts)
+	productRoute.Get("/:id", s.authMw, s.productHandlers.GetById)
+	productRoute.Get("/:id/history", s.authMw, s.productHandlers.GetHistory)
 	productRoute.Post("/", s.authMw, s.productHandlers.CreateProduct)
 	productRoute.Patch("/", s.authMw, s.productHandlers.UpdateProduct)
 	productRoute.Put("/stock", s.authMw, s.productHandlers.UpdateProductStock)

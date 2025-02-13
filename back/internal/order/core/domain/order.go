@@ -4,6 +4,7 @@ import (
 	"time"
 
 	user_domain "github.com/DongnutLa/stockio/internal/user/core/domain"
+	"github.com/samber/lo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -35,7 +36,7 @@ type Order struct {
 
 func NewOrder(
 	otype OrderType,
-	products *[]OrderProduct,
+	productsDto *[]OrderProductDTO,
 	user *user_domain.User,
 	totals *Totals,
 	paymentMethod PaymentMethod,
@@ -43,14 +44,28 @@ func NewOrder(
 	id := primitive.NewObjectID()
 	now := time.Now()
 
+	products := lo.Map(*productsDto, dto2OrderProduct)
 	return &Order{
 		ID:            id,
 		Type:          otype,
-		Products:      products,
+		Products:      &products,
 		User:          user,
 		Totals:        totals,
 		PaymentMethod: paymentMethod,
 		CreatedAt:     &now,
 		UpdatedAt:     &now,
 	}
+}
+
+func dto2OrderProduct(product OrderProductDTO, _ int) OrderProduct {
+	id, _ := primitive.ObjectIDFromHex(product.ID)
+	return *NewOrderProduct(
+		id,
+		product.Name,
+		product.Sku,
+		product.Unit,
+		product.Quantity,
+		product.Price,
+		product.Cost,
+	)
 }

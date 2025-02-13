@@ -8,6 +8,7 @@ import (
 	order_domain "github.com/DongnutLa/stockio/internal/order/core/domain"
 	order_ports "github.com/DongnutLa/stockio/internal/order/core/ports"
 	order_repositories "github.com/DongnutLa/stockio/internal/order/repositories"
+	product_domain "github.com/DongnutLa/stockio/internal/product/core/domain"
 	user_domain "github.com/DongnutLa/stockio/internal/user/core/domain"
 	shared_domain "github.com/DongnutLa/stockio/internal/zshared/core/domain"
 	shared_ports "github.com/DongnutLa/stockio/internal/zshared/core/ports"
@@ -50,8 +51,9 @@ func (s *OrderService) CreateOrder(
 		return nil, shared_domain.ErrEmptyOrderProducts
 	}
 
-	totals := calculateOrderTotal(products, orderDto.Discount)
+	totals := calculateOrderTotal(products, orderDto.Discount, orderDto.Type)
 	if totals.Total != orderDto.Totals.Total {
+		s.logger.Error().Float64("total", totals.Total).Float64("total_dto", orderDto.Totals.Total).Msg("Order totals inconsistents")
 		return nil, shared_domain.ErrInconsistentTotals
 	}
 
@@ -64,6 +66,7 @@ func (s *OrderService) CreateOrder(
 
 	s.logger.Info().Interface("newOrder", newOrder).Msg("Order successfully created")
 
+	s.sendStockMessage(ctx, orderDto, products, authUser)
 	return newOrder, nil
 }
 
@@ -85,15 +88,15 @@ func (s *OrderService) UpdateOrder(
 		return nil, shared_domain.ErrEmptyOrderProducts
 	}
 
-	products := *orderDto.Products
-	if len(products) == 0 {
-		return nil, shared_domain.ErrEmptyOrderProducts
-	}
+	// products := *orderDto.Products
+	// if len(products) == 0 {
+	// 	return nil, shared_domain.ErrEmptyOrderProducts
+	// }
 
-	totals := calculateOrderTotal(products, orderDto.Discount)
-	if totals.Total != orderDto.Totals.Total {
-		return nil, shared_domain.ErrInconsistentTotals
-	}
+	// totals := calculateOrderTotal(products, orderDto.Discount)
+	// if totals.Total != orderDto.Totals.Total {
+	// 	return nil, shared_domain.ErrInconsistentTotals
+	// }
 
 	now := time.Now()
 
@@ -102,8 +105,8 @@ func (s *OrderService) UpdateOrder(
 			"_id": order.ID,
 		},
 		Payload: &map[string]interface{}{
-			"products":      products,
-			"totals":        totals,
+			// "products":      products,
+			// "totals":        totals,
 			"paymentMethod": orderDto.PaymentMethod,
 			"updatedAt":     &now,
 		},
@@ -118,13 +121,18 @@ func (s *OrderService) UpdateOrder(
 	return res, nil
 }
 
-func calculateOrderTotal(products []order_domain.OrderProduct, discount float64) order_domain.Totals {
+func calculateOrderTotal(products []order_domain.OrderProductDTO, discount float64, oType order_domain.OrderType) order_domain.Totals {
 	reduceFunc := func(
 		acc float64,
-		curr order_domain.OrderProduct,
+		curr order_domain.OrderProductDTO,
 		_ int,
 	) float64 {
-		acc += curr.Price * float64(curr.Quantity)
+		price := curr.Price
+		if oType == order_domain.OrderTypePurchase {
+			price = curr.Cost
+		}
+
+		acc += price * float64(curr.Quantity)
 		return acc
 	}
 
@@ -133,4 +141,41 @@ func calculateOrderTotal(products []order_domain.OrderProduct, discount float64)
 
 	newTotals := order_domain.NewTotals(subtotal, discount, total)
 	return *newTotals
+}
+
+func (s *OrderService) sendStockMessage(
+	ctx context.Context,
+	orderDto *order_domain.CreateOrderDTO,
+	products []order_domain.OrderProductDTO,
+	authUser *user_domain.User,
+) {
+	var updateType product_domain.StockUpdateType
+	if orderDto.Type == order_domain.OrderTypePurchase {
+		updateType = product_domain.StockPurchase
+	}
+	if orderDto.Type == order_domain.OrderTypeSale {
+		updateType = product_domain.StockSale
+	}
+
+	for _, product := range products {
+		msg := shared_domain.MessageEvent{
+			EventTopic: shared_domain.HandleStockTopic,
+			Topic:      shared_domain.HandleEventsTopic,
+			Data: map[string]interface{}{
+				"updateStockDTO": &product_domain.UpdateStockDTO{
+					ID:         product.ID,
+					UpdateType: updateType,
+					StockCreate: product_domain.StockCreate{
+						Cost:     product.Cost,
+						Price:    product.Price,
+						Quantity: product.Quantity,
+					},
+				},
+				"authUser": authUser,
+			},
+		}
+
+		s.messaging.SendMessage(ctx, &msg)
+		s.logger.Info().Interface("message", msg).Msgf("Stock message for product %s sent", product.Name)
+	}
 }

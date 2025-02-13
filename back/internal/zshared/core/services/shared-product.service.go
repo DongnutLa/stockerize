@@ -64,6 +64,7 @@ func (s *SharedProductService) UpdateProductStock(ctx context.Context, stockDto 
 
 		stock[len(stock)-1] = newStock
 		historyType = product_domain.ProductHistoryInfo
+
 	case product_domain.StockIncrease:
 		newStock := stock[len(stock)-1]
 		newStock.Available += stockDto.Quantity
@@ -71,16 +72,19 @@ func (s *SharedProductService) UpdateProductStock(ctx context.Context, stockDto 
 
 		stock[len(stock)-1] = newStock
 		historyType = product_domain.ProductHistoryIncrease
+
 	case product_domain.StockDecrease:
 		toRelease := stockDto.Quantity
 		newStock := lo.Map(stock, stockDecrease(toRelease))
 
 		stock = newStock
 		historyType = product_domain.ProductHistoryDecrease
+
 	case product_domain.StockPurchase:
 		newStock := product_domain.NewStock(stockDto.Cost, stockDto.Price, stockDto.Quantity, stockDto.Quantity, 0)
 		stock = append(stock, *newStock)
 		historyType = product_domain.ProductHistoryPurchase
+
 	case product_domain.StockSale:
 		toRelease := stockDto.Quantity
 		newStock := lo.Map(stock, stockSale(toRelease))

@@ -60,7 +60,6 @@ func (s *SharedProductService) UpdateProductStock(ctx context.Context, stockDto 
 	case product_domain.StockInfo:
 		newStock := stock[len(stock)-1]
 		newStock.Cost = stockDto.Cost
-		newStock.Price = stockDto.Price
 
 		stock[len(stock)-1] = newStock
 		historyType = product_domain.ProductHistoryInfo
@@ -81,7 +80,7 @@ func (s *SharedProductService) UpdateProductStock(ctx context.Context, stockDto 
 		historyType = product_domain.ProductHistoryDecrease
 
 	case product_domain.StockPurchase:
-		newStock := product_domain.NewStock(stockDto.Cost, stockDto.Price, stockDto.Quantity, stockDto.Quantity, 0)
+		newStock := product_domain.NewStock(stockDto.Cost, stockDto.Quantity, stockDto.Quantity, 0)
 		stock = append(stock, *newStock)
 		historyType = product_domain.ProductHistoryPurchase
 
@@ -111,15 +110,25 @@ func (s *SharedProductService) UpdateProductStock(ctx context.Context, stockDto 
 		s.logger.Info().Interface("product", res).Msg("Product stock updated successfully")
 	}
 
-	currPrice := (*res.Stock)[len(*res.Stock)-1].Price
+	priceItem, ok := lo.Find(*product.Prices, func(priceItem product_domain.Price) bool {
+		if priceItem.Max == -1 {
+			priceItem.Max = math.Inf(0)
+		}
+
+		return priceItem.Min > stockDto.Quantity && priceItem.Max <= stockDto.Quantity
+	})
+	if !ok {
+		priceItem = (*product.Prices)[0]
+	}
+
 	currCost := (*res.Stock)[len(*res.Stock)-1].Cost
 
 	s.CreateHistory(
 		ctx,
 		historyType,
 		stockDto.Quantity,
-		currPrice,
-		currPrice-currCost,
+		priceItem.Price,
+		priceItem.Price-currCost,
 		"",
 		product.ID.Hex(),
 		product.Name,

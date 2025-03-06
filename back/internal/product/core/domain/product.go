@@ -13,6 +13,7 @@ type Product struct {
 	Sku          string              `bson:"sku" json:"sku"`
 	Store        *store_domain.Store `bson:"store" json:"store,omitempty"`
 	Stock        *[]Stock            `bson:"stock" json:"stock,omitempty"`
+	Prices       *[]Price            `bson:"prices" json:"prices"`
 	Unit         ProductUnit         `bson:"unit" json:"unit"`
 	CreatedAt    *time.Time          `bson:"createdAt" json:"createdAt,omitempty"`
 	UpdatedAt    *time.Time          `bson:"updatedAt" json:"updatedAt,omitempty"`

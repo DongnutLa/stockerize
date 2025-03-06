@@ -8,7 +8,6 @@ type CreateProductDTO struct {
 }
 type StockCreate struct {
 	Cost     float64 `json:"cost"`
-	Price    float64 `json:"price"`
 	Quantity float64 `json:"quantity"` // delta
 }
 

@@ -167,7 +167,6 @@ func (s *OrderService) sendStockMessage(
 					UpdateType: updateType,
 					StockCreate: product_domain.StockCreate{
 						Cost:     product.Cost,
-						Price:    product.Price,
 						Quantity: product.Quantity,
 					},
 				},

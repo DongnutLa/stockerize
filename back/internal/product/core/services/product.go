@@ -128,7 +128,6 @@ func (s *ProductService) CreateProduct(
 
 	stock := product_domain.NewStock(
 		productDto.Stock.Cost,
-		productDto.Stock.Price,
 		productDto.Stock.Quantity,
 		productDto.Stock.Quantity,
 		0,
@@ -153,8 +152,8 @@ func (s *ProductService) CreateProduct(
 		ctx,
 		product_domain.ProductHistoryPurchase,
 		stock.Quantity,
-		stock.Price,
-		stock.Price-stock.Cost,
+		0,
+		-stock.Cost,
 		product.Unit,
 		product.ID.Hex(),
 		product.Name,
@@ -239,7 +238,6 @@ func totalizeStock(stocks []product_domain.Stock) *product_domain.Stock {
 			Quantity:  acc.Quantity + curr.Quantity,
 			Sold:      acc.Sold + curr.Sold,
 			Cost:      curr.Cost,
-			Price:     curr.Price,
 			ID:        primitive.NilObjectID,
 			CreatedAt: nil,
 			UpdatedAt: nil,

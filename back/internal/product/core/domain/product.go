@@ -17,7 +17,7 @@ type Product struct {
 	Unit         ProductUnit         `bson:"unit" json:"unit"`
 	CreatedAt    *time.Time          `bson:"createdAt" json:"createdAt,omitempty"`
 	UpdatedAt    *time.Time          `bson:"updatedAt" json:"updatedAt,omitempty"`
-	StockSummary *Stock              `json:"stockSummary"`
+	StockSummary *Stock              `bson:"-" json:"stockSummary"`
 }
 
 func NewProduct(
@@ -25,6 +25,7 @@ func NewProduct(
 	store *store_domain.Store,
 	stock *[]Stock,
 	unit ProductUnit,
+	prices *[]Price,
 ) *Product {
 	id := primitive.NewObjectID()
 	now := time.Now()
@@ -36,6 +37,7 @@ func NewProduct(
 		Store:     store,
 		Stock:     stock,
 		Unit:      unit,
+		Prices:    prices,
 		CreatedAt: &now,
 		UpdatedAt: &now,
 	}

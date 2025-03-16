@@ -1,14 +1,16 @@
 package product_domain
 
 type CreateProductDTO struct {
-	Name  string       `json:"name"`
-	Sku   string       `json:"sku"`
-	Stock *StockCreate `json:"stock"`
-	Unit  ProductUnit  `json:"unit"`
+	Name   string       `json:"name"`
+	Sku    string       `json:"sku"`
+	Stock  *StockCreate `json:"stock"`
+	Unit   ProductUnit  `json:"unit"`
+	Prices *[]Price     `json:"prices"`
 }
 type StockCreate struct {
-	Cost     float64 `json:"cost"`
-	Quantity float64 `json:"quantity"` // delta
+	Cost      float64 `json:"cost"`
+	Quantity  float64 `json:"quantity"` // delta
+	UnitPrice Price   `json:"unitPrice"`
 }
 
 type UpdateProductDTO struct {

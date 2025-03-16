@@ -11,7 +11,6 @@ type ProductUnit string
 const (
 	ProductUnitPc ProductUnit = "PC" // Unidades
 	ProductUnitLt ProductUnit = "LT" // Litros
-	ProductUnitOz ProductUnit = "OZ" // Onzas
 	ProductUnitKg ProductUnit = "KG" // Kilos
 	ProductUnitLb ProductUnit = "LB" // Libras
 )
@@ -42,7 +41,6 @@ func NewStock(cost, quantity, available, sold float64) *Stock {
 }
 
 type Price struct {
-	Min   float64 `bson:"min" json:"min"`
-	Max   float64 `bson:"max" json:"max"`
-	Price float64 `bson:"price" json:"price"`
+	SubUnit float64 `bson:"subUnit" json:"subUnit"` // 0.25 | 0.5 | 0.75 | 1 | 2 | 3 | ...
+	Price   float64 `bson:"price" json:"price"`
 }

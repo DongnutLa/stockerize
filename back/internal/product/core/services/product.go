@@ -139,6 +139,7 @@ func (s *ProductService) CreateProduct(
 		&authUser.Store,
 		&[]product_domain.Stock{*stock},
 		productDto.Unit,
+		productDto.Prices,
 	)
 
 	if err := s.productRepo.InsertOne(ctx, *product); err != nil {
@@ -155,6 +156,7 @@ func (s *ProductService) CreateProduct(
 		0,
 		-stock.Cost,
 		product.Unit,
+		1,
 		product.ID.Hex(),
 		product.Name,
 		product.Sku,
@@ -198,6 +200,7 @@ func (s *ProductService) UpdateProduct(ctx context.Context, productDto *product_
 		0,
 		0,
 		"",
+		0,
 		productDto.ID,
 		productDto.Name,
 		productDto.Sku,

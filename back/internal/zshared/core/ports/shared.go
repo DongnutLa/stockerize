@@ -16,6 +16,7 @@ type ISharedProductService interface {
 		hType product_domain.ProductHistoryType,
 		quantity, price, gain float64,
 		unit product_domain.ProductUnit,
+		subUnit float64,
 		productId, productName, productSku string,
 		user *user_domain.User,
 	)

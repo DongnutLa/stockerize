@@ -24,6 +24,7 @@ type History struct {
 	Price       float64            `bson:"price" json:"price"`
 	Gain        float64            `bson:"gain" json:"gain"`
 	Unit        ProductUnit        `bson:"unit" json:"unit"`
+	SubUnit     float64            `bson:"subUnit" json:"subUnit"`
 	User        *user_domain.User  `bson:"user" json:"user"`
 	ProductId   primitive.ObjectID `bson:"productId" json:"productId"`
 	ProductName string             `bson:"productName" json:"productName"`
@@ -35,6 +36,7 @@ func NewHistory(
 	htype ProductHistoryType,
 	quantity, price, gain float64,
 	unit ProductUnit,
+	subUnit float64,
 	productId, productName, productSku string,
 	user *user_domain.User,
 ) *History {
@@ -49,6 +51,7 @@ func NewHistory(
 		Price:       price,
 		Gain:        gain,
 		Unit:        unit,
+		SubUnit:     subUnit,
 		User:        user,
 		ProductId:   prdId,
 		ProductName: productName,

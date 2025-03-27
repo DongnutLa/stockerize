@@ -3,19 +3,30 @@ import { Form, Input, Button, Checkbox, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import 'antd/dist/reset.css'; // Asegúrate de importar los estilos de Ant Design
 import Logo from '../../../Components/Logo';
+import { AuthService } from '../../../services';
+import { saveToLocalStorage } from '../../../utils/functions';
+import { AUTH_USER_KEY, ROUTES } from '../../../utils/constants';
+import { useNavigate } from 'react-router';
+
+const authService = new AuthService(import.meta.env.VITE_API_BASE_URL)
 
 const LoginForm = () => {
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const onFinish = (values: any) => {
+  const onFinish = async (values: any) => {
     setLoading(true);
-    // Simulando una llamada a una API
-    setTimeout(() => {
-      setLoading(false);
-      message.success('Inicio de sesión exitoso');
-      console.log('Valores recibidos:', values);
-      // Aquí podrías redirigir al usuario a otra página
-    }, 2000);
+
+    try {
+      const authUser = await authService.login(values)
+      saveToLocalStorage(AUTH_USER_KEY, JSON.stringify(authUser))
+      navigate(ROUTES.root)
+      message.success({content: `Bienvenid@ ${authUser.name}!`, duration: 2})
+    } catch (error) {
+      message.error({content: "Credenciales inválidas", duration: 2})
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -27,10 +38,10 @@ const LoginForm = () => {
         onFinish={onFinish}
       >
         <Form.Item
-          name="username"
-          rules={[{ required: true, message: 'Por favor ingresa tu usuario!' }]}
+          name="email"
+          rules={[{ required: true, message: 'Por favor ingresa tu correo!' }]}
         >
-          <Input prefix={<UserOutlined />} placeholder="Usuario" />
+          <Input type='email' prefix={<UserOutlined />} placeholder="Correo" />
         </Form.Item>
 
         <Form.Item

@@ -2,8 +2,10 @@ import Layout, { Content, Footer, Header } from 'antd/es/layout/layout'
 import Sider from 'antd/es/layout/Sider'
 import MainMenu from '../Components/Menu';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router';
-import { PRIVATE_ROUTES, ROUTES } from '../utils/constants';
+import { AUTH_USER_KEY, PRIVATE_ROUTES, ROUTES } from '../utils/constants';
 import { useEffect } from 'react';
+import { getFromLocalStorage } from '../utils/functions';
+import { AuthUser } from '../models';
 
 const footerStyle: React.CSSProperties = {
   textAlign: 'center',
@@ -39,21 +41,21 @@ const headerStyle: React.CSSProperties = {
 function MainLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const isLoggedIn = false;
+  const authUser = JSON.parse(getFromLocalStorage<AuthUser>(AUTH_USER_KEY) as string) as AuthUser | null;
 
   useEffect(() => {
     PRIVATE_ROUTES.forEach(route => {
       const path = location.pathname;
-      console.log({route, path})
-
-      const isPrivatePath = path.includes(route)
       
+      const isPrivatePath = path.includes(route)
+      const isLoggedIn = !!authUser && !!authUser.token
+
       if (isPrivatePath && !isLoggedIn) {
         return navigate(ROUTES.login)
       }
     })
 
-  }, [location, isLoggedIn])
+  }, [location, authUser])
 
     return (
       <Layout style={layoutStyle}>

@@ -19,7 +19,7 @@ export const saveToLocalStorage = (key: string, value: string) => {
  * @param {any} defaultValue - Valor por defecto si la clave no existe.
  * @returns {any} - El valor recuperado o el valor por defecto.
  */
-export const getFromLocalStorage = (key: string, defaultValue = null) => {
+export const getFromLocalStorage = <T>(key: string, defaultValue: any = null): T | (string | null) => {
     let serializedValue = null;
     try {
     serializedValue = localStorage.getItem(key); // Recupera el valor
@@ -27,7 +27,8 @@ export const getFromLocalStorage = (key: string, defaultValue = null) => {
         return defaultValue; // Devuelve el valor por defecto si no existe
       }
 
-      return JSON.parse(serializedValue); // Convierte de JSON a objeto/valor
+      const parsedData = JSON.parse(serializedValue); // Convierte de JSON a objeto/valor
+      return parsedData as T
     } catch (error) {
       console.error("Error al recuperar de localStorage:", error);
       return serializedValue || defaultValue; // Devuelve el valor string O el valor por defecto

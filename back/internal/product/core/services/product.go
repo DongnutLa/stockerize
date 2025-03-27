@@ -87,14 +87,20 @@ func (s *ProductService) SearchProducts(
 ) (*shared_domain.PagingResponse[product_domain.Product], *shared_domain.ApiError) {
 	skip := (queryParams.Page - 1) * queryParams.PageSize
 	result := []product_domain.Product{}
-	opts := shared_ports.FindManyOpts{
-		Take: queryParams.PageSize,
-		Skip: skip,
-		Filter: map[string]interface{}{
-			"$text":     map[string]string{"$search": queryParams.Search},
-			"store._id": authUser.Store.ID,
-		},
+
+	filter := map[string]interface{}{
+		"store._id": authUser.Store.ID,
 	}
+	if queryParams.Search != "" {
+		filter["$text"] = map[string]string{"$search": queryParams.Search}
+	}
+
+	opts := shared_ports.FindManyOpts{
+		Take:   queryParams.PageSize,
+		Skip:   skip,
+		Filter: filter,
+	}
+
 	count, err := s.productRepo.FindMany(ctx, opts, &result, true)
 	if err != nil {
 		return nil, shared_domain.ErrFailedSearchProducts

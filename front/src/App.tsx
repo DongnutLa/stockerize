@@ -11,7 +11,8 @@ import ProductUpdate from './modules/products/containers/ProductUpdate.tsx';
 import MainRoute from './modules/main.tsx';
 
 function App() {
-    return ( 
+
+    return (
         <BrowserRouter>
             <Routes>
                 <Route element={<MainLayout />}>

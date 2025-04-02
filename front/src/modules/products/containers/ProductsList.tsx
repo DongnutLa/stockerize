@@ -34,7 +34,7 @@ function ProductsList() {
     }, [])
 
     const handleRowAction = (record: Product, _?: number) => ({
-        onClick: () => navigate(`/product/${record.id}`),
+        onClick: () => navigate(`/products/${record.id}`),
       });
 
     return ( <>

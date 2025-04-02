@@ -14,9 +14,11 @@ type StockCreate struct {
 }
 
 type UpdateProductDTO struct {
-	ID   string `json:"id"`
-	Sku  string `json:"sku"`
-	Name string `json:"name"`
+	ID     string      `json:"id"`
+	Sku    string      `json:"sku"`
+	Name   string      `json:"name"`
+	Unit   ProductUnit `json:"unit"`
+	Prices []Price     `json:"prices"`
 }
 
 type StockUpdateType string

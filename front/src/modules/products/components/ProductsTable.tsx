@@ -1,7 +1,6 @@
-import { Table } from "antd";
+import { Space, Table, Tag } from "antd";
 import { useMemo } from "react";
-import { Metadata, Price, Product, PRODUCT_UNIT_NAME, ProductUnit, subUnitText } from "../../../models";
-import dayjs from "../../../utils/functions/dayjs";
+import { Metadata, Price, Product, PRODUCT_UNIT_NAME, subUnitText } from "../../../models";
 import { getPageSizeOptions, numberToCurrency } from "../../../utils/functions";
 
 interface ProductsTableProps {
@@ -26,32 +25,27 @@ function ProductsTable({products, isFetching, pagination, handlePaginationChange
             key: "sku",
           },
           {
-            title: "Unidad",
-            dataIndex: "unit",
-            key: "unit",
-            render: (unit: ProductUnit) => PRODUCT_UNIT_NAME[unit]
-          },
-          {
             title: "Precios",
             dataIndex: "prices",
             key: "prices",
-            render: (prices: Price[]) => <div>
+            render: (prices: Price[]) => <Space direction="vertical">
                 {prices.map(price => (
-                    <p>{subUnitText(price.subUnit)}: {numberToCurrency(price.price)}</p>
+                    <div><Tag color="magenta">{subUnitText(price.subUnit)}</Tag> <span>{numberToCurrency(price.price)}</span></div>
                 ))}
-            </div>
+            </Space>
           },
           {
             title: "Disponible",
             dataIndex: ["stockSummary", "available"],
             key: "stock",
-          },
+            render: (stock: number, reg: Product) => `${stock} ${PRODUCT_UNIT_NAME[reg.unit]}`
+          }/* ,
           {
             title: "Creación",
             dataIndex: "createdAt",
             key: "createdAt",
             render: (createdAt: string) => dayjs(createdAt).utc().format("D MMM, YYYY h:mm A"),
-          },
+          }, */
         ];
       }, []);
 

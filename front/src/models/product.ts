@@ -22,6 +22,27 @@ available: number
 sold: number
 }
 
+export type ProductDTO = {
+    id?: string
+    name: string
+    sku: string
+    prices: Price[]
+    unit: ProductUnit
+    stock?: {
+        cost?: number
+        quantity?: number
+    }
+}
+export type ProductStockDTO = {
+    id: string
+    updateType: "INCREASE" | "DECREASE" | "INFO"
+    cost: number
+    quantity: number
+    unitPrice: {
+        subUnit: number
+    }
+}
+
 export enum ProductUnit {
     PC = "PC",
     LT = "LT",
@@ -36,6 +57,11 @@ export const PRODUCT_UNIT_NAME: Record<ProductUnit, string> = {
     LB: "Libras",
 }
 
+export const productUnitOptions = Object.entries(PRODUCT_UNIT_NAME).map(([value, label]) => ({
+    value,
+    label
+}))
+
 export function subUnitText(subunit:number) {
     switch (subunit) {
         case 0.25:
@@ -48,5 +74,19 @@ export function subUnitText(subunit:number) {
             return "1"
         default:
             return ""
+    }
+}
+
+export function subUnitOptions(unit: ProductUnit) {
+    switch (unit) {
+        case ProductUnit.LB:
+            return [{label: "1/4", value: 0.25},{label: "1/2", value: 0.5},{label: "3/4", value: 0.75},{label: "1", value: 1},{label: "2 (1kg)", value: 2}]
+        case ProductUnit.KG:
+            return [{label: "1/4", value: 0.25},{label: "1/2", value: 0.5},{label: "3/4", value: 0.75},{label: "1", value: 1}]
+        case ProductUnit.LT:
+            return [{label: "1/4", value: 0.25},{label: "1/2", value: 0.5},{label: "3/4", value: 0.75},{label: "1", value: 1}]
+        case ProductUnit.PC:
+        default:
+            return [{label: "1", value: 1}]
     }
 }

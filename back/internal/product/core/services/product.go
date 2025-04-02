@@ -12,6 +12,7 @@ import (
 	shared_ports "github.com/DongnutLa/stockio/internal/zshared/core/ports"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -148,6 +149,21 @@ func (s *ProductService) CreateProduct(
 		productDto.Prices,
 	)
 
+	// Validate SKU by store
+	opts := shared_ports.FindManyOpts{
+		Filter: map[string]interface{}{
+			"sku":       productDto.Sku,
+			"store._id": authUser.Store.ID.Hex(),
+		},
+	}
+	skuProds := []product_domain.Product{}
+	s.productRepo.FindMany(ctx, opts, &skuProds, false)
+
+	if len(skuProds) > 0 {
+		s.logger.Error().Interface("sku", productDto.Sku).Msg("SKU already exists")
+		return nil, shared_domain.ErrProductSkuExists
+	}
+
 	if err := s.productRepo.InsertOne(ctx, *product); err != nil {
 		s.logger.Error().Err(err).Interface("product", product).Msg("Product creation failed")
 		return nil, shared_domain.ErrFailedProductCreate
@@ -189,8 +205,26 @@ func (s *ProductService) UpdateProduct(ctx context.Context, productDto *product_
 		Payload: &map[string]interface{}{
 			"name":      productDto.Name,
 			"sku":       productDto.Sku,
+			"prices":    productDto.Prices,
+			"unit":      productDto.Unit,
 			"updatedAt": &now,
 		},
+	}
+
+	// Validate SKU by store
+	opts := shared_ports.FindManyOpts{
+		Filter: map[string]interface{}{
+			"sku":       productDto.Sku,
+			"store._id": authUser.Store.ID.Hex(),
+			"_id":       bson.D{{Key: "$ne", Value: product.ID}},
+		},
+	}
+	skuProds := []product_domain.Product{}
+	s.productRepo.FindMany(ctx, opts, &skuProds, false)
+
+	if len(skuProds) > 0 {
+		s.logger.Error().Interface("sku", productDto.Sku).Msg("SKU already exists")
+		return nil, shared_domain.ErrProductSkuExists
 	}
 
 	res, err := s.productRepo.UpdateOne(ctx, updOpts)

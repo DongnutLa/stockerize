@@ -59,6 +59,8 @@ func (s *Server) Initialize() {
 	productRoute.Put("/stock", s.authMw, s.productHandlers.UpdateProductStock)
 
 	orderRoute := v1.Group("/order")
+	orderRoute.Get("/", s.authMw, s.orderHandlers.ListOrders)
+	orderRoute.Get("/:id", s.authMw, s.orderHandlers.GetById)
 	orderRoute.Post("/", s.authMw, s.orderHandlers.CreateOrder)
 	orderRoute.Patch("/", s.authMw, s.orderHandlers.UpdateOrder)
 

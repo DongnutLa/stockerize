@@ -66,11 +66,11 @@ func (u *UserService) Login(ctx context.Context, loginDto *user_domain.LoginDTO)
 		return nil, shared_domain.ErrInvalidCredentials
 	}
 
-	if authUser.Password != loginDto.Password {
+	if authUser.Password != nil && *authUser.Password != loginDto.Password {
 		return nil, shared_domain.ErrInvalidCredentials
 	}
 
-	authUser.Password = ""
+	authUser.Password = nil
 	token, apiErr := u.jwtService.GenerateJWT(authUser)
 	if apiErr != nil {
 		return nil, apiErr

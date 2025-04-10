@@ -164,3 +164,7 @@ func (r *AbstractRepository[T, Q]) UpdateOne(ctx context.Context, opts shared_po
 
 	return &newData, nil
 }
+
+func (r *AbstractRepository[T, Q]) GetCollection() (*mongo.Collection, *zerolog.Logger) {
+	return r.collection, r.logger
+}

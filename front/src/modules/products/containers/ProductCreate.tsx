@@ -12,7 +12,15 @@ const type = "CREATE"
 
 function ProductCreate() {
 
-    const {form, values, formLoading, onSubmitProduct, onStockUpdate, stockFormLoading} = useProductForm({productService, type })
+    const {
+        form,
+        values,
+        formLoading,
+        onSubmitProduct,
+        onStockUpdate,
+        stockFormLoading
+    } = useProductForm({productService, type })
+    
     return (
         <ProductForm
             type={type}

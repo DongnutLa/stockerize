@@ -101,47 +101,53 @@ var (
 		15,
 	)
 
+	ErrFailedGetOrder = NewApiError(
+		"Failed to get order",
+		OrderErrors,
+		fiber.StatusInternalServerError,
+		16,
+	)
 	ErrEmptyOrderProducts = NewApiError(
 		"Order products must not be empty",
 		OrderErrors,
 		fiber.StatusBadRequest,
-		16,
+		17,
 	)
 	ErrInconsistentTotals = NewApiError(
 		"Order totals are not consistent",
 		OrderErrors,
 		fiber.StatusBadRequest,
-		17,
+		18,
 	)
 	ErrFailedOrderCreate = NewApiError(
 		"Failed creating order",
 		OrderErrors,
 		fiber.StatusInternalServerError,
-		18,
+		19,
 	)
 	ErrFailedOrderUpdate = NewApiError(
 		"Failed updating order",
 		OrderErrors,
 		fiber.StatusInternalServerError,
-		19,
+		20,
 	)
 
 	ErrFailedToParseBody = NewApiError(
 		"Failed to parse body",
 		GeneralErrors,
 		fiber.StatusInternalServerError,
-		20,
+		21,
 	)
 	ErrInvalidParams = NewApiError(
 		"Invalid params",
 		GeneralErrors,
 		fiber.StatusBadRequest,
-		21,
+		22,
 	)
 	ErrGenerateToken = NewApiError(
 		"Unable to generate token access",
 		GeneralErrors,
 		fiber.StatusInternalServerError,
-		22,
+		23,
 	)
 )

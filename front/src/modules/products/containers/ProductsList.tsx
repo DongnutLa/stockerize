@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import ProductsTable from "../components/ProductsTable";
 import { AuthUser, Metadata, Product } from "../../../models";
-import { ProductsService } from "../../../services/products";
+import { ProductsService } from "../../../services";
 import { getFromLocalStorage } from "../../../utils/functions";
 import { AUTH_USER_KEY } from "../../../utils/constants";
 import { useNavigate } from "react-router";

@@ -65,11 +65,11 @@ export const productUnitOptions = Object.entries(PRODUCT_UNIT_NAME).map(([value,
 export function subUnitText(subunit:number) {
     switch (subunit) {
         case 0.25:
-            return "1/4"
+            return "¼"
         case 0.5:
-            return "1/2"
+            return "½"
         case 0.75:
-            return "3/4"
+            return "¾"
         case 1:
             return "1"
         default:
@@ -80,11 +80,11 @@ export function subUnitText(subunit:number) {
 export function subUnitOptions(unit: ProductUnit) {
     switch (unit) {
         case ProductUnit.LB:
-            return [{label: "1/4", value: 0.25},{label: "1/2", value: 0.5},{label: "3/4", value: 0.75},{label: "1", value: 1},{label: "2 (1kg)", value: 2}]
+            return [{label: "¼", value: 0.25},{label: "½", value: 0.5},{label: "¾", value: 0.75},{label: "1", value: 1},{label: "2 (1kg)", value: 2}]
         case ProductUnit.KG:
-            return [{label: "1/4", value: 0.25},{label: "1/2", value: 0.5},{label: "3/4", value: 0.75},{label: "1", value: 1}]
+            return [{label: "¼", value: 0.25},{label: "½", value: 0.5},{label: "¾", value: 0.75},{label: "1", value: 1}]
         case ProductUnit.LT:
-            return [{label: "1/4", value: 0.25},{label: "1/2", value: 0.5},{label: "3/4", value: 0.75},{label: "1", value: 1}]
+            return [{label: "¼", value: 0.25},{label: "½", value: 0.5},{label: "¾", value: 0.75},{label: "1", value: 1}]
         case ProductUnit.PC:
         default:
             return [{label: "1", value: 1}]

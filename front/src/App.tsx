@@ -4,7 +4,7 @@ import LoginContainer from './modules/login/container/index.tsx'
 import MainLayout from './Layout/MainLayout.tsx'
 import OrdersList from './modules/orders/containers/OrdersList.tsx';
 import OrderCreate from './modules/orders/containers/OrderCreate.tsx';
-import OrderUpdate from './modules/orders/containers/OrderUopdate.tsx';
+import OrderUpdate from './modules/orders/containers/OrderUpdate.tsx';
 import ProductsList from './modules/products/containers/ProductsList.tsx';
 import ProductCreate from './modules/products/containers/ProductCreate.tsx';
 import ProductUpdate from './modules/products/containers/ProductUpdate.tsx';

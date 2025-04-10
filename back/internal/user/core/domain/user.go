@@ -22,7 +22,7 @@ type User struct {
 	Status    UserStatus         `bson:"status" json:"status"`
 	Role      constants.UserRole `bson:"role" json:"role"`
 	Store     store_domain.Store `bson:"store" json:"store"`
-	Password  string             `bson:"password" json:"-"`
+	Password  *string            `bson:"password,omitempty" json:"-"`
 	Token     string             `bson:"-" json:"token"`
 	CreatedAt *time.Time         `bson:"createdAt" json:"createdAt"`
 	UpdatedAt *time.Time         `bson:"updatedAt" json:"updatedAt"`
@@ -46,7 +46,7 @@ func NewUser(
 		Store:     store,
 		CreatedAt: &now,
 		UpdatedAt: &now,
-		Password:  password,
+		Password:  &password,
 	}
 }
 

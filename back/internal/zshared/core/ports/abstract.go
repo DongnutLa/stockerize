@@ -1,6 +1,11 @@
 package shared_ports
 
-import "context"
+import (
+	"context"
+
+	"github.com/rs/zerolog"
+	"go.mongodb.org/mongo-driver/mongo"
+)
 
 type FindOneOpts struct {
 	Filter map[string]interface{}
@@ -28,4 +33,5 @@ type Repository[T any, Q any] interface {
 	FindMany(ctx context.Context, opts FindManyOpts, result *[]T, returnCount bool) (*int64, error)
 	InsertOne(ctx context.Context, entity T) error
 	DeleteOne(ctx context.Context, opts DeleteOpts) (bool, error)
+	GetCollection() (*mongo.Collection, *zerolog.Logger)
 }

@@ -1,6 +1,9 @@
 package order_domain
 
-import product_domain "github.com/DongnutLa/stockio/internal/product/core/domain"
+import (
+	product_domain "github.com/DongnutLa/stockio/internal/product/core/domain"
+	shared_domain "github.com/DongnutLa/stockio/internal/zshared/core/domain"
+)
 
 type OrderProductDTO struct {
 	ID        string                     `json:"id"`
@@ -26,4 +29,9 @@ type UpdateOrderDTO struct {
 	Totals        *Totals            `json:"totals"`
 	Discount      float64            `json:"discount"`
 	PaymentMethod PaymentMethod      `json:"paymentMethod"`
+}
+
+type OrdersQueryParams struct {
+	shared_domain.SearchQueryParams
+	OrderType OrderType `json:"orderType"`
 }

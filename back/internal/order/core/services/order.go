@@ -17,9 +17,10 @@ import (
 )
 
 type OrderService struct {
-	logger    *zerolog.Logger
-	orderRepo order_repositories.IOrderRepository
-	messaging shared_ports.IEventMessaging
+	logger        *zerolog.Logger
+	orderRepo     order_repositories.IOrderRepository
+	messaging     shared_ports.IEventMessaging
+	consecService shared_ports.IConsecutiveService
 }
 
 func NewOrderService(
@@ -27,12 +28,66 @@ func NewOrderService(
 	logger *zerolog.Logger,
 	repository order_repositories.IOrderRepository,
 	messaging shared_ports.IEventMessaging,
+	consecService shared_ports.IConsecutiveService,
 ) order_ports.IOrderService {
 	return &OrderService{
-		logger:    logger,
-		orderRepo: repository,
-		messaging: messaging,
+		logger:        logger,
+		orderRepo:     repository,
+		messaging:     messaging,
+		consecService: consecService,
 	}
+}
+
+func (s *OrderService) ListOrders(
+	ctx context.Context,
+	queryParams *order_domain.OrdersQueryParams,
+	authUser *user_domain.User,
+) (*shared_domain.PagingResponse[order_domain.Order], *shared_domain.ApiError) {
+	skip := (queryParams.Page - 1) * queryParams.PageSize
+	result := []order_domain.Order{}
+
+	filter := map[string]interface{}{
+		"user.store._id": authUser.Store.ID,
+		"type":           string(queryParams.OrderType),
+	}
+	if queryParams.Search != "" {
+		filter["$text"] = map[string]string{"$search": queryParams.Search}
+	}
+
+	opts := shared_ports.FindManyOpts{
+		Take:   queryParams.PageSize,
+		Skip:   skip,
+		Filter: filter,
+		Sort: map[string]interface{}{
+			"createdAt": -1,
+		},
+	}
+
+	count, err := s.orderRepo.FindMany(ctx, opts, &result, true)
+	if err != nil {
+		return nil, shared_domain.ErrFailedGetOrder
+	}
+
+	response := shared_domain.PagingResponse[order_domain.Order]{
+		Metadata: shared_domain.Metadata{
+			Page:     queryParams.Page,
+			PageSize: queryParams.PageSize,
+			Count:    *count,
+			HasNext:  *count > (queryParams.Page * queryParams.PageSize),
+		},
+		Data: result,
+	}
+
+	return &response, nil
+}
+
+func (s *OrderService) GetById(ctx context.Context, id string, authUser *user_domain.User) (*order_domain.Order, *shared_domain.ApiError) {
+	order, apiErr := s.findOrderById(ctx, id, authUser)
+	if apiErr != nil {
+		return nil, apiErr
+	}
+
+	return order, nil
 }
 
 func (s *OrderService) CreateOrder(
@@ -57,10 +112,23 @@ func (s *OrderService) CreateOrder(
 		return nil, shared_domain.ErrInconsistentTotals
 	}
 
-	newOrder := order_domain.NewOrder(orderDto.Type, &products, authUser, &totals, orderDto.PaymentMethod)
+	consecutive, err := s.consecService.GetConsecutive(ctx, shared_domain.ConsecutiveType(orderDto.Type))
+	if err != nil {
+		s.logger.Error().Err(err).Msg("Order creation failed in getting consecutive")
+		return nil, shared_domain.ErrFailedOrderCreate
+	}
+
+	newOrder := order_domain.NewOrder(orderDto.Type, &products, authUser, &totals, orderDto.PaymentMethod, consecutive)
 
 	if err := s.orderRepo.InsertOne(ctx, *newOrder); err != nil {
 		s.logger.Error().Err(err).Interface("newOrder", newOrder).Msg("Order creation failed")
+
+		// Restore consecutive
+		err := s.consecService.RestoreConsecutive(ctx, shared_domain.ConsecutiveType(orderDto.Type))
+		if err != nil {
+			s.logger.Error().Err(err).Msg("Failed restoring consecutive")
+		}
+
 		return nil, shared_domain.ErrFailedOrderCreate
 	}
 
@@ -77,10 +145,9 @@ func (s *OrderService) UpdateOrder(
 ) (*order_domain.Order, *shared_domain.ApiError) {
 	s.logger.Info().Interface("orderDto", orderDto).Interface("user", authUser).Msg("Attempt to create order")
 
-	opts := shared_ports.FindOneOpts{Filter: map[string]interface{}{"_id": orderDto.ID}}
-	order := order_domain.Order{}
-	if err := s.orderRepo.FindOne(ctx, opts, &order); err != nil {
-		s.logger.Error().Err(err).Interface("order", orderDto).Msg("Order update failed in find")
+	order, apiErr := s.findOrderById(ctx, orderDto.ID, authUser)
+	if apiErr != nil {
+		s.logger.Error().Err(apiErr).Interface("order", orderDto).Msg("Order update failed in find")
 		return nil, shared_domain.ErrFailedOrderUpdate
 	}
 
@@ -119,6 +186,24 @@ func (s *OrderService) UpdateOrder(
 	}
 
 	return res, nil
+}
+
+// PRIVATE METHODS
+func (s *OrderService) findOrderById(ctx context.Context, id string, authUser *user_domain.User) (*order_domain.Order, *shared_domain.ApiError) {
+	opts := shared_ports.FindOneOpts{
+		Filter: map[string]interface{}{
+			"_id":            id,
+			"user.store._id": authUser.Store.ID,
+		},
+	}
+
+	order := order_domain.Order{}
+	if err := s.orderRepo.FindOne(ctx, opts, &order); err != nil {
+		s.logger.Error().Err(err).Interface("order", id).Msg("Find order failed")
+		return nil, shared_domain.ErrFailedGetOrder
+	}
+
+	return &order, nil
 }
 
 func calculateOrderTotal(products []order_domain.OrderProductDTO, discount float64, oType order_domain.OrderType) order_domain.Totals {

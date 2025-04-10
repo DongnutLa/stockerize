@@ -26,6 +26,7 @@ const (
 type Order struct {
 	ID            primitive.ObjectID `bson:"_id" json:"id"`
 	Type          OrderType          `bson:"type" json:"type"`
+	Consecutive   string             `bson:"consecutive" json:"consecutive"`
 	Products      *[]OrderProduct    `bson:"products" json:"products"`
 	User          *user_domain.User  `bson:"user" json:"user"`
 	Totals        *Totals            `bson:"totals" json:"totals"`
@@ -40,6 +41,7 @@ func NewOrder(
 	user *user_domain.User,
 	totals *Totals,
 	paymentMethod PaymentMethod,
+	consecutive string,
 ) *Order {
 	id := primitive.NewObjectID()
 	now := time.Now()
@@ -48,6 +50,7 @@ func NewOrder(
 	return &Order{
 		ID:            id,
 		Type:          otype,
+		Consecutive:   consecutive,
 		Products:      &products,
 		User:          user,
 		Totals:        totals,

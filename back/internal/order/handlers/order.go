@@ -19,6 +19,43 @@ func NewOrderHandlers(orderService order_ports.IOrderService) order_ports.IOrder
 	}
 }
 
+func (h *OrderHandlers) GetById(fiberCtx *fiber.Ctx) error {
+	authUser := fiberCtx.Locals(constants.AUTH_USER_KEY).(*user_domain.User)
+	if authUser == nil {
+		authErr := shared_domain.ErrAuthUserNotFound
+		return fiberCtx.Status(authErr.HttpStatusCode).JSON(authErr)
+	}
+
+	id := fiberCtx.Params("id")
+	product, err := h.orderService.GetById(fiberCtx.Context(), id, authUser)
+	if err != nil {
+		return fiberCtx.Status(err.HttpStatusCode).JSON(err)
+	}
+
+	return fiberCtx.Status(fiber.StatusOK).JSON(product)
+}
+
+func (h *OrderHandlers) ListOrders(fiberCtx *fiber.Ctx) error {
+	authUser := fiberCtx.Locals(constants.AUTH_USER_KEY).(*user_domain.User)
+	if authUser == nil {
+		authErr := shared_domain.ErrAuthUserNotFound
+		return fiberCtx.Status(authErr.HttpStatusCode).JSON(authErr)
+	}
+
+	queryParams := order_domain.OrdersQueryParams{}
+	if err := fiberCtx.QueryParser(&queryParams); err != nil {
+		bodyErr := shared_domain.ErrFailedToParseBody
+		return fiberCtx.Status(bodyErr.HttpStatusCode).JSON(bodyErr)
+	}
+
+	response, apiErr := h.orderService.ListOrders(fiberCtx.Context(), &queryParams, authUser)
+	if apiErr != nil {
+		return fiberCtx.Status(apiErr.HttpStatusCode).JSON(apiErr)
+	}
+
+	return fiberCtx.Status(fiber.StatusOK).JSON(response)
+}
+
 func (h *OrderHandlers) CreateOrder(fiberCtx *fiber.Ctx) error {
 	authUser := fiberCtx.Locals(constants.AUTH_USER_KEY).(*user_domain.User)
 	if authUser == nil {

@@ -6,13 +6,14 @@ import (
 )
 
 type OrderProduct struct {
-	ID       primitive.ObjectID         `bson:"_id" json:"id"`
-	Name     string                     `bson:"name" json:"name"`
-	Sku      string                     `bson:"sku" json:"sku"`
-	Quantity float64                    `bson:"quantity" json:"quantity"`
-	Price    float64                    `bson:"price" json:"price"`
-	Cost     float64                    `bson:"cost" json:"cost"`
-	Unit     product_domain.ProductUnit `bson:"unit" json:"unit"`
+	ID        primitive.ObjectID         `bson:"_id" json:"id"`
+	Name      string                     `bson:"name" json:"name"`
+	Sku       string                     `bson:"sku" json:"sku"`
+	Quantity  float64                    `bson:"quantity" json:"quantity"`
+	Price     float64                    `bson:"price" json:"price"`
+	Cost      float64                    `bson:"cost" json:"cost"`
+	Unit      product_domain.ProductUnit `bson:"unit" json:"unit"`
+	UnitPrice product_domain.Price       `bson:"unitPrice" json:"unitPrice"`
 }
 
 func NewOrderProduct(

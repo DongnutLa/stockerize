@@ -80,6 +80,8 @@ func NewAuthMiddleware(
 			return c.Status(apiErr.HttpStatusCode).JSON(apiErr)
 		}
 
+		user.Password = nil
+
 		c.Locals(constants.AUTH_USER_KEY, &user)
 		logger.Info().Interface("user", user).Msg("INFO | Auth middleware")
 		return c.Next()

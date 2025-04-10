@@ -25,7 +25,7 @@ const items = (navigate: NavigateFunction): MenuItem[] => [
       icon: <AppstoreOutlined />,
       children: [
         { key: 'list-orders', label: 'Lista de órdenes', onClick: () => navigate(ROUTES.orders), },
-        { key: 'create-order', label: 'Crear orden', onClick: () => navigate(ROUTES.productsCreate), },
+        { key: 'create-order', label: 'Crear orden', onClick: () => navigate(ROUTES.ordersCreate), },
       ],
     },
     { key: 'logout', icon: <PieChartOutlined />, label: 'Cerrar sesión' },

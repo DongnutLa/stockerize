@@ -1,4 +1,4 @@
-import { Pagination, Order, OrderDTO, OrderType } from "../models";
+import { Pagination, Order, OrderDTO, OrderType, SummaryDash } from "../models";
 import { ApiService } from "./api";
 
 export interface OrderParams {page: number, pageSize: number, orderType: OrderType, search?: string}
@@ -27,4 +27,7 @@ export class OrdersService {
         return this.api.patch('order', data)
     }
 
+    async getSummary(): Promise<SummaryDash> {
+        return this.api.get('order/summary')
+    }
 }

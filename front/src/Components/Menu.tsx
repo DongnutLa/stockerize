@@ -3,6 +3,7 @@ import {
     AppstoreOutlined,
     MailOutlined,
     PieChartOutlined,
+    HomeOutlined,
   } from '@ant-design/icons';
 import { NavigateFunction, useNavigate } from "react-router";
 import { ROUTES } from "../utils/constants";
@@ -10,6 +11,7 @@ import { ROUTES } from "../utils/constants";
 type MenuItem = Required<MenuProps>['items'][number];
 
 const items = (navigate: NavigateFunction): MenuItem[] => [
+    { key: 'home', icon: <HomeOutlined />, label: 'Inicio', onClick: () => navigate(ROUTES.root) },
     {
       key: 'products',
       label: 'Productos',

@@ -99,3 +99,18 @@ func (h *OrderHandlers) UpdateOrder(fiberCtx *fiber.Ctx) error {
 
 	return fiberCtx.Status(fiber.StatusOK).JSON(order)
 }
+
+func (h *OrderHandlers) GetSummary(fiberCtx *fiber.Ctx) error {
+	authUser := fiberCtx.Locals(constants.AUTH_USER_KEY).(*user_domain.User)
+	if authUser == nil {
+		authErr := shared_domain.ErrAuthUserNotFound
+		return fiberCtx.Status(authErr.HttpStatusCode).JSON(authErr)
+	}
+
+	summary, apiErr := h.orderService.GetSummary(fiberCtx.Context(), authUser)
+	if apiErr != nil {
+		return fiberCtx.Status(apiErr.HttpStatusCode).JSON(apiErr)
+	}
+
+	return fiberCtx.Status(fiber.StatusOK).JSON(summary)
+}

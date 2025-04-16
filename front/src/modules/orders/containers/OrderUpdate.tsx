@@ -1,8 +1,8 @@
 import { useParams } from "react-router";
 import useOrderForm from "../hooks/useOrderForm";
-import { getFromLocalStorage } from "../../../utils/functions";
+import { calculateProductSubtotal, getFromLocalStorage } from "../../../utils/functions";
 import { AUTH_USER_KEY } from "../../../utils/constants";
-import { AuthUser, Order, OrderProducts, OrderType } from "../../../models";
+import { AuthUser, Order } from "../../../models";
 import { OrdersService, ProductsService } from "../../../services";
 import OrderForm from "../components/OrderForm";
 import { useEffect, useState } from "react";
@@ -10,13 +10,6 @@ import { useEffect, useState } from "react";
 const authUser = JSON.parse(getFromLocalStorage(AUTH_USER_KEY) as string) as AuthUser
 const ordersService = new OrdersService(import.meta.env.VITE_API_BASE_URL, authUser?.token)
 const productsService = new ProductsService(import.meta.env.VITE_API_BASE_URL, authUser.token)
-
-const calculateProductSubtotal = (product: OrderProducts, orderType: OrderType): number => {
-    const price = orderType === "SALE" ? product.price : product.cost
-    
-    const subtotal = price * product.quantity
-    return subtotal
-}
 
 function OrderUpdate() {
     const { orderId } = useParams();
@@ -34,7 +27,7 @@ function OrderUpdate() {
         handleSelectOption,
         onChangeQuantity,
         onChangePrice,
-    } = useOrderForm({type: "UPDATE", ordersService, productsService, order, calculateProductSubtotal})
+    } = useOrderForm({type: "UPDATE", ordersService, productsService, order})
 
     console.log(values)
 

@@ -1,5 +1,5 @@
 import { Button, Col, Form, FormInstance, InputNumber, Radio, Row, Tag, Typography } from "antd";
-import { emptyOrderDto, Order, OrderDTO, PAYMENT_METHOD_LABEL, PaymentMethod, Product, PRODUCT_UNIT_NAME, subUnitText } from "../../../models";
+import { Order, OrderDTO, PAYMENT_METHOD_LABEL, PaymentMethod, Product, PRODUCT_UNIT_NAME, subUnitText } from "../../../models";
 import Title from "antd/es/typography/Title";
 import DebouncedSearchSelect from "./SearchSelect";
 import OrderProductsTable from "./OrderProductsTable";
@@ -55,7 +55,7 @@ function OrderForm({
                         </Col>
                     </Row>
                 ),
-                disabled: (values?.products ?? []).some(e => `${e.id}|1` === `${p.id}|1`),
+                disabled: (values?.products ?? []).some(e => `${e.id}|1` === `${p.id}|1`) || p.stockSummary.available < 1,
                 children: p.prices.map(pr => ({
                     key: `${p.id}|${pr.subUnit}|child`,
                     value: `${p.id}|${pr.subUnit}|child`,
@@ -69,7 +69,7 @@ function OrderForm({
                             </Col>
                         </Row>
                     ),
-                    disabled: (values?.products ?? []).some(e => `${e.id}|${e.unitPrice.subUnit}` === `${p.id}|${pr.subUnit}`),
+                    disabled: (values?.products ?? []).some(e => `${e.id}|${e.unitPrice.subUnit}` === `${p.id}|${pr.subUnit}`) || p.stockSummary.available < pr.subUnit,
                 })),
             })) as DataNode[]
         }

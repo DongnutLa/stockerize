@@ -14,13 +14,15 @@ import (
 	shared_ports "github.com/DongnutLa/stockio/internal/zshared/core/ports"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type OrderService struct {
-	logger        *zerolog.Logger
-	orderRepo     order_repositories.IOrderRepository
-	messaging     shared_ports.IEventMessaging
-	consecService shared_ports.IConsecutiveService
+	logger         *zerolog.Logger
+	orderRepo      order_repositories.IOrderRepository
+	messaging      shared_ports.IEventMessaging
+	consecService  shared_ports.IConsecutiveService
+	summaryService shared_ports.ISharedOrdersSummaryService
 }
 
 func NewOrderService(
@@ -29,12 +31,14 @@ func NewOrderService(
 	repository order_repositories.IOrderRepository,
 	messaging shared_ports.IEventMessaging,
 	consecService shared_ports.IConsecutiveService,
+	summaryService shared_ports.ISharedOrdersSummaryService,
 ) order_ports.IOrderService {
 	return &OrderService{
-		logger:        logger,
-		orderRepo:     repository,
-		messaging:     messaging,
-		consecService: consecService,
+		logger:         logger,
+		orderRepo:      repository,
+		messaging:      messaging,
+		consecService:  consecService,
+		summaryService: summaryService,
 	}
 }
 
@@ -135,6 +139,7 @@ func (s *OrderService) CreateOrder(
 	s.logger.Info().Interface("newOrder", newOrder).Msg("Order successfully created")
 
 	s.sendStockMessage(ctx, orderDto, products, authUser)
+	s.sendSummaryMessage(ctx, &totals, orderDto.Type, orderDto.PaymentMethod)
 	return newOrder, nil
 }
 
@@ -188,6 +193,50 @@ func (s *OrderService) UpdateOrder(
 	return res, nil
 }
 
+func (s *OrderService) GetSummary(ctx context.Context, authUser *user_domain.User) (any, *shared_domain.ApiError) {
+	summary, err := s.summaryService.GetOrdersSummary(ctx)
+	if err != nil {
+		return nil, shared_domain.ErrFailedGetSummary
+	}
+
+	groupedSummaries := groupSummaries(summary)
+
+	finalSummary := make(map[shared_domain.OrderType]map[shared_domain.SummaryType]shared_domain.OrderSummary)
+
+	for ordType, summByType := range groupedSummaries {
+		summMap := make(map[shared_domain.SummaryType]shared_domain.OrderSummary)
+		finalSummary[ordType] = summMap
+
+		for summType, summaries := range summByType {
+			newSummary := shared_domain.OrderSummary{
+				ID:          primitive.NewObjectID(),
+				OrderType:   ordType,
+				SummaryType: summType,
+			}
+
+			for _, summ := range summaries {
+				newSummary.Count += summ.Count
+				newSummary.Total += summ.Total
+				newSummary.Start = summ.Start
+				newSummary.End = summ.End
+				newSummary.UpdatedAt = summ.UpdatedAt
+
+				methodDetail := shared_domain.PaymentMethodDetails{
+					PaymentMethod: summ.PaymentMethod,
+					Count:         summ.Count,
+					Total:         summ.Total,
+				}
+
+				newSummary.PaymentMethodDetails = append(newSummary.PaymentMethodDetails, methodDetail)
+			}
+
+			finalSummary[ordType][summType] = newSummary
+		}
+	}
+
+	return finalSummary, nil
+}
+
 // PRIVATE METHODS
 func (s *OrderService) findOrderById(ctx context.Context, id string, authUser *user_domain.User) (*order_domain.Order, *shared_domain.ApiError) {
 	opts := shared_ports.FindOneOpts{
@@ -228,6 +277,26 @@ func calculateOrderTotal(products []order_domain.OrderProductDTO, discount float
 	return *newTotals
 }
 
+func (s *OrderService) sendSummaryMessage(
+	ctx context.Context,
+	totals *order_domain.Totals,
+	orderType order_domain.OrderType,
+	paymentMethod order_domain.PaymentMethod,
+) {
+	msg := shared_domain.MessageEvent{
+		EventTopic: shared_domain.HandleOrdersSummary,
+		Topic:      shared_domain.HandleEventsTopic,
+		Data: map[string]interface{}{
+			"totals":        totals,
+			"orderType":     &orderType,
+			"paymentMethod": &paymentMethod,
+		},
+	}
+
+	s.messaging.SendMessage(ctx, &msg)
+	s.logger.Info().Interface("message", msg).Msg("Orders summary message for order sent")
+}
+
 func (s *OrderService) sendStockMessage(
 	ctx context.Context,
 	orderDto *order_domain.CreateOrderDTO,
@@ -263,4 +332,23 @@ func (s *OrderService) sendStockMessage(
 		s.messaging.SendMessage(ctx, &msg)
 		s.logger.Info().Interface("message", msg).Msgf("Stock message for product %s sent", product.Name)
 	}
+}
+
+func groupSummaries(summaries []shared_domain.OrderSummary) map[shared_domain.OrderType]map[shared_domain.SummaryType][]shared_domain.OrderSummary {
+	// Primero agrupamos por OrderType
+	groupedByOrderType := lo.GroupBy(summaries, func(summary shared_domain.OrderSummary) shared_domain.OrderType {
+		return summary.OrderType
+	})
+
+	// Luego agrupamos cada grupo por SummaryType
+	result := make(map[shared_domain.OrderType]map[shared_domain.SummaryType][]shared_domain.OrderSummary)
+
+	for orderType, typeSummaries := range groupedByOrderType {
+		groupedBySummaryType := lo.GroupBy(typeSummaries, func(summary shared_domain.OrderSummary) shared_domain.SummaryType {
+			return summary.SummaryType
+		})
+		result[orderType] = groupedBySummaryType
+	}
+
+	return result
 }

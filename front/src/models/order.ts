@@ -35,6 +35,7 @@ export type OrderProducts = {
     unit: ProductUnit
     unitPrice: Omit<Price, "price">
 
+    available?: number
     unitPrices?: Price[]
     subtotal?: number
 }

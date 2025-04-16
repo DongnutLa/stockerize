@@ -3,11 +3,13 @@ package shared_domain
 type MessagingTopics string
 
 const (
-	HandleStockTopic MessagingTopics = "stock.handle"
+	HandleStockTopic    MessagingTopics = "stock.handle"
+	HandleOrdersSummary MessagingTopics = "orders.summary.handle"
 )
 
 var TopicList = []string{
 	string(HandleStockTopic),
+	string(HandleOrdersSummary),
 }
 
 type MessageEvent struct {

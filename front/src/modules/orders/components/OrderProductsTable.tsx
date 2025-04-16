@@ -1,17 +1,17 @@
 import { InputNumber, Table, Tag } from "antd";
-import { useMemo } from "react";
+import { useCallback } from "react";
 import { OrderProducts, OrderType, Price, PRODUCT_UNIT_NAME, subUnitText } from "../../../models";
-import { numberToCurrency } from "../../../utils/functions";
+import { getMaxToSell, numberToCurrency } from "../../../utils/functions";
 
 interface OrderProductsTableProps {
     products: OrderProducts[]
     orderType: OrderType
-    onChangeQuantity: (productId: string, quantity: number) => void
-    onChangePrice: (productId: string, quantity: number) => void
+    onChangeQuantity: (productId: string, subUnit: number, quantity: number) => void
+    onChangePrice: (productId: string, subUnit: number, quantity: number) => void
 }
 
 function OrderProductsTable({products, orderType, onChangeQuantity, onChangePrice}: OrderProductsTableProps) {
-    const columns = useMemo(() => {
+    const columns = useCallback((products: OrderProducts[]) => {
         return [
           {
             title: "Nombre",
@@ -34,7 +34,7 @@ function OrderProductsTable({products, orderType, onChangeQuantity, onChangePric
             dataIndex: "quantity",
             key: "quantity",
             render: (qty: number, product: OrderProducts) => (
-                <InputNumber defaultValue={qty} value={product.quantity} onChange={(value) => onChangeQuantity(product.id, value ?? 1)} />
+                <InputNumber defaultValue={qty} min={1} max={getMaxToSell(product, products, orderType)} value={product.quantity} onChange={(value) => onChangeQuantity(product.id, product.unitPrice.subUnit, value ?? 1)} />
             )
           },
           {
@@ -42,7 +42,7 @@ function OrderProductsTable({products, orderType, onChangeQuantity, onChangePric
             dataIndex: orderType === "SALE" ? "price" : "cost",
             key: orderType === "SALE" ? "price" : "cost",
             render: (qty: number, product: OrderProducts) => (
-                <InputNumber defaultValue={qty} value={orderType === "SALE" ? product.price : product.cost} onChange={(value) => onChangePrice(product.id, value ?? 1)} />
+                <InputNumber defaultValue={qty} value={orderType === "SALE" ? product.price : product.cost} onChange={(value) => onChangePrice(product.id, product.unitPrice.subUnit, value ?? 1)} />
             )
           },
           {
@@ -56,7 +56,7 @@ function OrderProductsTable({products, orderType, onChangeQuantity, onChangePric
     return (
         <Table
         dataSource={products.map(p => ({...p, key: `${p.id}|${p.unitPrice.subUnit}`}))}
-        columns={columns}
+        columns={columns(products)}
         tableLayout="fixed"
         scroll={{ y: 450 }}
         pagination={false}

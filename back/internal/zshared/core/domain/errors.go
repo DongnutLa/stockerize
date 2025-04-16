@@ -131,23 +131,29 @@ var (
 		fiber.StatusInternalServerError,
 		20,
 	)
+	ErrFailedGetSummary = NewApiError(
+		"Failed getting orders summary",
+		OrderErrors,
+		fiber.StatusInternalServerError,
+		21,
+	)
 
 	ErrFailedToParseBody = NewApiError(
 		"Failed to parse body",
 		GeneralErrors,
 		fiber.StatusInternalServerError,
-		21,
+		22,
 	)
 	ErrInvalidParams = NewApiError(
 		"Invalid params",
 		GeneralErrors,
 		fiber.StatusBadRequest,
-		22,
+		23,
 	)
 	ErrGenerateToken = NewApiError(
 		"Unable to generate token access",
 		GeneralErrors,
 		fiber.StatusInternalServerError,
-		23,
+		24,
 	)
 )

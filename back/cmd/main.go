@@ -51,15 +51,17 @@ func init() {
 	productHistoryRepository := product_repositories.NewProductHistoryRepository(ctx, constants.PRODUCTS_HISTORY_COLLECTION, conn.Database, &logger)
 	orderRepository := order_repositories.NewOrderRepository(ctx, constants.ORDERS_COLLECTION, conn.Database, &logger)
 	consecutiveRepository := shared_repositories.NewConsecutiveRepository(ctx, constants.CONSECUTIVES_COLLECTION, conn.Database, &logger)
+	ordersSummaryRepository := shared_repositories.NewOrderSummaryRepository(ctx, constants.ORDERS_SUMMARY_COLLECTION, conn.Database, &logger)
 
 	// Shared services
 	sharedProductService := shared_services.NewSharedProductService(ctx, &logger, productRepository, productHistoryRepository)
 	consecutiveService := shared_services.NewConsecutiveService(&logger, consecutiveRepository)
+	ordersSummaryService := shared_services.NewSharedOrdersSummaryService(&logger, ordersSummaryRepository)
 
 	eventType := shared_ports.UseSNS
 	if !IsLambda() {
 		eventType = shared_ports.UseBUS
-		handler := shared_handlers.NewEventsHandler(ctx, &logger, sharedProductService)
+		handler := shared_handlers.NewEventsHandler(ctx, &logger, sharedProductService, ordersSummaryService)
 
 		msgNow := time.Now()
 		shared_services.MessagingInit()
@@ -78,7 +80,7 @@ func init() {
 	userService := user_services.NewUserService(ctx, &logger, userRepository, jwtService)
 	storeService := store_services.NewStoreService(ctx, &logger, storeRepository)
 	productService := product_services.NewProductService(ctx, &logger, productRepository, productHistoryRepository, sharedProductService, messaging)
-	orderService := order_services.NewOrderService(ctx, &logger, orderRepository, messaging, consecutiveService)
+	orderService := order_services.NewOrderService(ctx, &logger, orderRepository, messaging, consecutiveService, ordersSummaryService)
 
 	//handlers
 	userHandlers := user_handlers.NewUserHandler(userService)

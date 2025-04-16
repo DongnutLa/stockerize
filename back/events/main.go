@@ -18,6 +18,7 @@ import (
 
 var logger zerolog.Logger
 var sharedProductService shared_ports.ISharedProductService
+var sharedOrdersSummaryService shared_ports.ISharedOrdersSummaryService
 
 func init() {
 	ctx := context.TODO()
@@ -28,8 +29,10 @@ func init() {
 
 	productRepository := product_repositories.NewProductRepository(context.TODO(), constants.PRODUCTS_COLLECTION, conn.Database, &logger)
 	productHistoryRepository := product_repositories.NewProductHistoryRepository(context.TODO(), constants.PRODUCTS_HISTORY_COLLECTION, conn.Database, &logger)
+	ordersSummaryRepository := shared_repositories.NewOrderSummaryRepository(context.TODO(), constants.ORDERS_SUMMARY_COLLECTION, conn.Database, &logger)
 
 	sharedProductService = shared_services.NewSharedProductService(ctx, &logger, productRepository, productHistoryRepository)
+	sharedOrdersSummaryService = shared_services.NewSharedOrdersSummaryService(&logger, ordersSummaryRepository)
 }
 
 func Handler(ctx context.Context, snsEvent events.SNSEvent) {
@@ -40,7 +43,12 @@ func Handler(ctx context.Context, snsEvent events.SNSEvent) {
 		switch event.EventTopic {
 		case shared_domain.HandleStockTopic:
 			sharedProductService.HandleStock(ctx, event.Data, string(event.EventTopic))
+			return
+		case shared_domain.HandleOrdersSummary:
+			sharedOrdersSummaryService.HandleOrdersSummary(ctx, event.Data, string(event.EventTopic))
+			return
 		}
+
 	}
 }
 

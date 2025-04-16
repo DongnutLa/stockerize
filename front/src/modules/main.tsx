@@ -1,6 +1,8 @@
+import SummaryDashboard from "../Components/Dashboard";
+
 function MainRoute() {
     return ( 
-        <div>Hola main</div>
+        <SummaryDashboard />
      );
 }
 

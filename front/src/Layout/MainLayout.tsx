@@ -64,11 +64,11 @@ function MainLayout() {
           <MainMenu />
         </Sider>
         <Layout>
-          <Header style={headerStyle}>Header</Header>
+          <Header style={headerStyle}></Header>
           <Content style={contentStyle}>
             <Outlet />
           </Content>
-          <Footer style={footerStyle}>Footer</Footer>
+          <Footer style={footerStyle}></Footer>
         </Layout>
       </Layout>
     )

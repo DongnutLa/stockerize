@@ -4,8 +4,6 @@ import debounce from 'lodash/debounce';
 import { BaseOptionType } from 'antd/es/select';
 import { DataNode } from 'antd/es/tree';
 
-const { Option } = Select;
-
 interface DebouncedSearchSelectProps<T = any> {
     placeholder?: string
     valueProp: string

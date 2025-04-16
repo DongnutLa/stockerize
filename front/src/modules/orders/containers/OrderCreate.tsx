@@ -1,4 +1,5 @@
-import { AuthUser } from "../../../models";
+import { useEffect } from "react";
+import { AuthUser, emptyOrderDto } from "../../../models";
 import { OrdersService, ProductsService } from "../../../services";
 import { AUTH_USER_KEY } from "../../../utils/constants";
 import { getFromLocalStorage } from "../../../utils/functions";
@@ -22,6 +23,10 @@ function OrderCreate() {
         onChangeQuantity,
         onChangePrice,
     } = useOrderForm({type: "CREATE", ordersService, productsService})
+
+    useEffect(() => {
+        form.setFieldsValue(emptyOrderDto)
+    }, [])
 
     return (
         <OrderForm

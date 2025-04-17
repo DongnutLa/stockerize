@@ -16,7 +16,6 @@ export class ApiService {
   constructor(baseUrl: string, defaultHeaders: Record<string, string> = {}) {
     this.baseUrl = baseUrl;
     this.defaultHeaders = {
-      'Content-Type': 'application/json',
       ...defaultHeaders,
     };
   }

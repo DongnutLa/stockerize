@@ -1,7 +1,7 @@
 import Layout, { Content, Footer, Header } from 'antd/es/layout/layout'
 import Sider from 'antd/es/layout/Sider'
 import MainMenu from '../Components/Menu';
-import { Outlet, useLocation, useNavigate, useParams } from 'react-router';
+import { Outlet, useLocation, useNavigate } from 'react-router';
 import { AUTH_USER_KEY, PRIVATE_ROUTES, ROUTES } from '../utils/constants';
 import { useEffect } from 'react';
 import { getFromLocalStorage } from '../utils/functions';

@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes, useNavigate, useParams } from 'react-router'
+import { BrowserRouter, Route, Routes } from 'react-router'
 import AuthLayout from './Layout/AuthLayout.tsx'
 import LoginContainer from './modules/login/container/index.tsx'
 import MainLayout from './Layout/MainLayout.tsx'

@@ -79,9 +79,6 @@ const useOrderForm = ({ordersService, productsService, type}: UseOrderFormProps)
             return p
         })
 
-        console.log("PAsó")
-        return
-
         setFormLoading(true)
         var number = ""
         try {

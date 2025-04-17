@@ -27,28 +27,6 @@ const SummaryDashboard = () => {
         setIsFetching(false)
     }, [setIsFetching])
 
-  // Función para formatear fechas
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
-
-  // Función para traducir tipos
-  const translateType = (type: string) => {
-    const types: Record<string, string> = {
-      'DAILY': 'Diario',
-      'WEEKLY': 'Semanal',
-      'MONTHLY': 'Mensual',
-      'SALE': 'Ventas',
-      'PURCHASE': 'Compras'
-    };
-    return types[type] || type;
-  };
-
   const renderRange = (type: SummaryType, item: OrderSummary): string => {
     switch (type) {
         case SummaryType.DAILY:

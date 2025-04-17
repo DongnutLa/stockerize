@@ -20,8 +20,8 @@ interface OrderFormProps {
     productOptions: Product[]
     setProductsOptions: (products: Product[]) => void
     handleSelectOption: (value: string) => void
-    onChangeQuantity: (productId: string, quantity: number) => void
-    onChangePrice: (productId: string, quantity: number) => void
+    onChangeQuantity: (productId: string, subUnit: number, quantity: number) => void
+    onChangePrice: (productId: string, subUnit: number, quantity: number) => void
 }
 
 function OrderForm({

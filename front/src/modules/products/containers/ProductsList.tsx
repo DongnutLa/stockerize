@@ -7,7 +7,7 @@ import { AUTH_USER_KEY } from "../../../utils/constants";
 import { useNavigate } from "react-router";
 
 const authUser = JSON.parse(getFromLocalStorage(AUTH_USER_KEY) as string) as AuthUser
-const productService = new ProductsService(import.meta.env.VITE_API_BASE_URL, authUser.token)
+const productService = new ProductsService(import.meta.env.VITE_API_BASE_URL, authUser?.token)
 
 function ProductsList() {
     const [products, setProducts] = useState<Product[]>([])

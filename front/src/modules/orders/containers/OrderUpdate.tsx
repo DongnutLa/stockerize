@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 
 const authUser = JSON.parse(getFromLocalStorage(AUTH_USER_KEY) as string) as AuthUser
 const ordersService = new OrdersService(import.meta.env.VITE_API_BASE_URL, authUser?.token)
-const productsService = new ProductsService(import.meta.env.VITE_API_BASE_URL, authUser.token)
+const productsService = new ProductsService(import.meta.env.VITE_API_BASE_URL, authUser?.token)
 
 function OrderUpdate() {
     const { orderId } = useParams();

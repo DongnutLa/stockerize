@@ -6,7 +6,7 @@ import { ProductsService } from "../../../services";
 import ProductsTable from "../components/ProductsTable";
 
 const authUser = JSON.parse(getFromLocalStorage(AUTH_USER_KEY) as string) as AuthUser
-const productService = new ProductsService(import.meta.env.VITE_API_BASE_URL, authUser.token)
+const productService = new ProductsService(import.meta.env.VITE_API_BASE_URL, authUser?.token)
 
 function ProductsAvailability() {
     const [products, setProducts] = useState<Product[]>([])

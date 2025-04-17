@@ -9,7 +9,7 @@ import {CaretUpOutlined, CaretDownOutlined} from '@ant-design/icons';
 import OrdersTable from "../components/OrdersTable";
 
 const authUser = JSON.parse(getFromLocalStorage(AUTH_USER_KEY) as string) as AuthUser
-const orderService = new OrdersService(import.meta.env.VITE_API_BASE_URL, authUser.token)
+const orderService = new OrdersService(import.meta.env.VITE_API_BASE_URL, authUser?.token)
 
 function OrdersList() {
     const [sales, setSales] = useState<Order[]>([])

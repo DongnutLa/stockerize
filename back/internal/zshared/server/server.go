@@ -1,8 +1,6 @@
 package server
 
 import (
-	"log"
-
 	order_ports "github.com/DongnutLa/stockio/internal/order/core/ports"
 	product_ports "github.com/DongnutLa/stockio/internal/product/core/ports"
 	store_ports "github.com/DongnutLa/stockio/internal/store/core/ports"
@@ -36,11 +34,18 @@ func NewServer(
 	}
 }
 
-func (s *Server) Initialize() {
+func (s *Server) Initialize() *fiber.App {
+
 	app := fiber.New()
 	app.Use(cors.New())
 
 	v1 := app.Group("/v1")
+
+	v1.Route("/health-check", func(router fiber.Router) {
+		router.Get("", func(c *fiber.Ctx) error {
+			return c.Status(fiber.StatusOK).JSON("ok")
+		})
+	})
 
 	userRoute := v1.Group("/user")
 	userRoute.Get("/login/google", s.authMw, s.userHandlers.GoogleLogin)
@@ -52,6 +57,7 @@ func (s *Server) Initialize() {
 
 	productRoute := v1.Group("/product")
 	productRoute.Get("/", s.authMw, s.productHandlers.SearchProducts)
+	productRoute.Get("/stock", s.authMw, s.productHandlers.GetProductsStock)
 	productRoute.Get("/:id", s.authMw, s.productHandlers.GetById)
 	productRoute.Get("/:id/history", s.authMw, s.productHandlers.GetHistory)
 	productRoute.Post("/", s.authMw, s.productHandlers.CreateProduct)
@@ -65,8 +71,5 @@ func (s *Server) Initialize() {
 	orderRoute.Post("/", s.authMw, s.orderHandlers.CreateOrder)
 	orderRoute.Patch("/", s.authMw, s.orderHandlers.UpdateOrder)
 
-	err := app.Listen(":3000")
-	if err != nil {
-		log.Fatal(err)
-	}
+	return app
 }

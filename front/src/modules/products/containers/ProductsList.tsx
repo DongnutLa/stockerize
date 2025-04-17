@@ -37,9 +37,15 @@ function ProductsList() {
         onClick: () => navigate(`/products/${record.id}`),
       });
 
-    return ( <>
-        <ProductsTable products={products} pagination={pagination} isFetching={isFetching} handlePaginationChange={handlePaginationChange} handleRowAction={handleRowAction}/>
-    </> );
+    return (
+        <ProductsTable
+            products={products}
+            pagination={pagination}
+            isFetching={isFetching}
+            handlePaginationChange={handlePaginationChange}
+            handleRowAction={handleRowAction}
+        />
+    );
 }
 
 export default ProductsList;

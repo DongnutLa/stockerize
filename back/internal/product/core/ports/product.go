@@ -16,6 +16,7 @@ type IProductService interface {
 	CreateProduct(ctx context.Context, productDto *product_domain.CreateProductDTO, authUser *user_domain.User) (*product_domain.Product, *shared_domain.ApiError)
 	UpdateProduct(ctx context.Context, productDto *product_domain.UpdateProductDTO, authUser *user_domain.User) (*product_domain.Product, *shared_domain.ApiError)
 	UpdateProductStock(ctx context.Context, productDto *product_domain.UpdateStockDTO, authUser *user_domain.User) (*product_domain.Product, *shared_domain.ApiError)
+	GetProductsStock(ctx context.Context, authUser *user_domain.User) ([]product_domain.Product, *shared_domain.ApiError)
 }
 
 type IProductHandler interface {
@@ -25,4 +26,5 @@ type IProductHandler interface {
 	CreateProduct(c *fiber.Ctx) error
 	UpdateProduct(c *fiber.Ctx) error
 	UpdateProductStock(c *fiber.Ctx) error
+	GetProductsStock(fiberCtx *fiber.Ctx) error
 }

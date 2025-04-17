@@ -19,6 +19,7 @@ const items = (navigate: NavigateFunction): MenuItem[] => [
       children: [
         { key: 'list-products', label: 'Lista de productos', onClick: () => navigate(ROUTES.products), },
         { key: 'create-products', label: 'Crear productos', onClick: () => navigate(ROUTES.productsCreate), },
+        { key: 'products-availability', label: 'Disponibilidad', onClick: () => navigate(ROUTES.ProductsAvailability), },
       ],
     },
     {

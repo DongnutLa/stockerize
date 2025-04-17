@@ -2,6 +2,7 @@ package product_services
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	product_domain "github.com/DongnutLa/stockio/internal/product/core/domain"
@@ -79,6 +80,47 @@ func (s *ProductService) GetHistory(ctx context.Context, id string, authUser *us
 	})
 
 	return &newHistory, nil
+}
+
+func (s *ProductService) GetProductsStock(
+	ctx context.Context,
+	authUser *user_domain.User,
+) ([]product_domain.Product, *shared_domain.ApiError) {
+	result := []product_domain.Product{}
+
+	filter := map[string]interface{}{
+		"store._id": authUser.Store.ID,
+	}
+
+	opts := shared_ports.FindManyOpts{
+		Filter: filter,
+	}
+
+	_, err := s.productRepo.FindMany(ctx, opts, &result, false)
+	if err != nil {
+		return nil, shared_domain.ErrFailedSearchProducts
+	}
+
+	productWithStock := lo.Map(result, func(item product_domain.Product, _ int) product_domain.Product {
+		newItem := item
+		newItem.StockSummary = totalizeStock(*newItem.Stock)
+		newItem.Stock = nil
+		newItem.Store = nil
+		return newItem
+	})
+
+	slices.SortStableFunc(productWithStock, func(a, b product_domain.Product) int {
+		if a.StockSummary.Available < b.StockSummary.Available {
+			return -1
+		}
+		if a.StockSummary.Available > b.StockSummary.Available {
+			return 1
+		}
+
+		return 0
+	})
+
+	return productWithStock, nil
 }
 
 func (s *ProductService) SearchProducts(

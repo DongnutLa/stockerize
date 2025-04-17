@@ -28,4 +28,8 @@ export class ProductsService {
     async updateStock(data: ProductStockDTO): Promise<Product> {
         return this.api.put('product/stock', data)
     }
+
+    async getProductsAvailability(): Promise<Product[]> {
+        return this.api.get('product/stock')
+    }
 }

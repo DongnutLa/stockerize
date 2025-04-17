@@ -58,8 +58,11 @@ func init() {
 	consecutiveService := shared_services.NewConsecutiveService(&logger, consecutiveRepository)
 	ordersSummaryService := shared_services.NewSharedOrdersSummaryService(&logger, ordersSummaryRepository)
 
+	isLambda := IsLambda()
+
 	eventType := shared_ports.UseSNS
-	if !IsLambda() {
+	if !isLambda {
+		logger.Info().Msg("Starting local events handler...")
 		eventType = shared_ports.UseBUS
 		handler := shared_handlers.NewEventsHandler(ctx, &logger, sharedProductService, ordersSummaryService)
 
@@ -91,6 +94,8 @@ func init() {
 	//Middlewares
 	auth := middlewares.NewAuthMiddleware(jwtService, userRepository, &logger, false)
 
+	apiNow := time.Now()
+
 	//server
 	httpServer := server.NewServer(
 		userHandlers,
@@ -99,7 +104,14 @@ func init() {
 		orderHandlers,
 		auth,
 	)
-	httpServer.Initialize()
+	app := httpServer.Initialize()
+
+	if isLambda {
+		fiberLambda = fiberAdapter.New(app)
+		logger.Info().Msgf("Api init time: %dms", time.Since(apiNow).Milliseconds())
+	} else {
+		app.Listen(":3000")
+	}
 }
 
 func Handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (*events.APIGatewayV2HTTPResponse, error) {

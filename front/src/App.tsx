@@ -9,6 +9,7 @@ import ProductsList from './modules/products/containers/ProductsList.tsx';
 import ProductCreate from './modules/products/containers/ProductCreate.tsx';
 import ProductUpdate from './modules/products/containers/ProductUpdate.tsx';
 import MainRoute from './modules/main.tsx';
+import ProductsAvailability from './modules/products/containers/ProductsAvailability.tsx';
 
 function App() {
 
@@ -22,6 +23,7 @@ function App() {
                         <Route index element={<ProductsList />} />
                         <Route path='create' element={<ProductCreate />} />
                         <Route path=':productId' element={<ProductUpdate />} />
+                        <Route path='availability' element={<ProductsAvailability />} />
                     </Route>
 
                     <Route path="orders">

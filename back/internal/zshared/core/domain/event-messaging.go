@@ -21,5 +21,5 @@ type MessageEvent struct {
 type AwsTopics string
 
 const (
-	HandleEventsTopic AwsTopics = "handle-events"
+	HandleEventsTopic AwsTopics = "stockerize-handle-events"
 )

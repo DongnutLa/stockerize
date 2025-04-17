@@ -9,11 +9,19 @@ interface ProductsTableProps {
     pagination?: Metadata
     handlePaginationChange: (page: number, pageSize: number) => void;
     handleRowAction: (record: any, index?: number) => { onClick: () => void };
+    hiddenTabs?: string[]
 }
 
-function ProductsTable({products, isFetching, pagination, handlePaginationChange, handleRowAction}: ProductsTableProps) {
+function ProductsTable({
+  products,
+  isFetching,
+  pagination,
+  hiddenTabs,
+  handlePaginationChange,
+  handleRowAction
+}: ProductsTableProps) {
     const columns = useMemo(() => {
-        return [
+        let cols = [
           {
             title: "Nombre",
             dataIndex: "name",
@@ -29,7 +37,7 @@ function ProductsTable({products, isFetching, pagination, handlePaginationChange
             dataIndex: "prices",
             key: "prices",
             render: (prices: Price[]) => <Space direction="vertical">
-                {prices.map(price => (
+                {(prices ?? []).map(price => (
                     <div><Tag color="magenta">{subUnitText(price.subUnit)}</Tag> <span>{numberToCurrency(price.price)}</span></div>
                 ))}
             </Space>
@@ -39,15 +47,15 @@ function ProductsTable({products, isFetching, pagination, handlePaginationChange
             dataIndex: ["stockSummary", "available"],
             key: "stock",
             render: (stock: number, reg: Product) => `${stock} ${PRODUCT_UNIT_NAME[reg.unit]}`
-          }/* ,
-          {
-            title: "Creación",
-            dataIndex: "createdAt",
-            key: "createdAt",
-            render: (createdAt: string) => dayjs(createdAt).utc().format("D MMM, YYYY h:mm A"),
-          }, */
+          }
         ];
-      }, []);
+
+        if (hiddenTabs?.length) {
+          cols = cols.filter(tab => !hiddenTabs.includes(tab.key))
+        }
+
+        return cols
+      }, [hiddenTabs]);
 
     return ( <Table
         dataSource={products}

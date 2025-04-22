@@ -48,6 +48,14 @@ func EventDataToStruct[T any](data interface{}) *T {
 
 		return &result
 	} else {
-		return data.(*T)
+		switch v := data.(type) {
+		case T:
+			return &v
+		case *T:
+			return v
+		default:
+			fmt.Printf("<ASSERTION ERROR> Invalid type %T\n", data)
+			return nil
+		}
 	}
 }

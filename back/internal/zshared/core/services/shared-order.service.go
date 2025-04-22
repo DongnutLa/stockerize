@@ -35,10 +35,23 @@ func (s *SharedOrderService) HandleOrdersSummary(ctx context.Context, payload ma
 	s.logger.Info().Interface("body", payload).Msgf("Message received for topic %s", topic)
 
 	totals := utils.EventDataToStruct[order_domain.Totals](payload["totals"])
-	orderType := utils.EventDataToStruct[order_domain.OrderType](payload["orderType"])
-	paymentMethod := utils.EventDataToStruct[order_domain.PaymentMethod](payload["paymentMethod"])
+	orderTypeStr := utils.EventDataToStruct[string](payload["orderType"])
+	paymentMethodStr := utils.EventDataToStruct[string](payload["paymentMethod"])
 
-	s.CalculateOrdersSummary(ctx, totals, *orderType, *paymentMethod)
+	// Convertir a los tipos enum
+	orderType, err := order_domain.StringToOrderType(*orderTypeStr)
+	if err != nil {
+		s.logger.Err(err).Msg("Tipo de orden inválido")
+		return
+	}
+
+	paymentMethod, err := order_domain.StringToPaymentMethod(*paymentMethodStr)
+	if err != nil {
+		s.logger.Err(err).Msg("Método de pago inválido")
+		return
+	}
+
+	s.CalculateOrdersSummary(ctx, totals, orderType, paymentMethod)
 }
 
 func getUTCMinus5Date() time.Time {

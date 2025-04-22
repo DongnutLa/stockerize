@@ -139,7 +139,7 @@ func (s *OrderService) CreateOrder(
 	s.logger.Info().Interface("newOrder", newOrder).Msg("Order successfully created")
 
 	s.sendStockMessage(ctx, orderDto, products, authUser)
-	s.sendSummaryMessage(ctx, &totals, orderDto.Type, orderDto.PaymentMethod)
+	s.sendSummaryMessage(ctx, &totals, string(orderDto.Type), string(orderDto.PaymentMethod))
 	return newOrder, nil
 }
 
@@ -280,8 +280,8 @@ func calculateOrderTotal(products []order_domain.OrderProductDTO, discount float
 func (s *OrderService) sendSummaryMessage(
 	ctx context.Context,
 	totals *order_domain.Totals,
-	orderType order_domain.OrderType,
-	paymentMethod order_domain.PaymentMethod,
+	orderType string,
+	paymentMethod string,
 ) {
 	msg := shared_domain.MessageEvent{
 		EventTopic: shared_domain.HandleOrdersSummary,

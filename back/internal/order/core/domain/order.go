@@ -1,6 +1,7 @@
 package order_domain
 
 import (
+	"fmt"
 	"time"
 
 	user_domain "github.com/DongnutLa/stockio/internal/user/core/domain"
@@ -15,6 +16,18 @@ const (
 	OrderTypePurchase OrderType = "PURCHASE"
 )
 
+// StringToOrderType convierte un string a OrderType (con validación).
+func StringToOrderType(s string) (OrderType, error) {
+	switch s {
+	case string(OrderTypeSale):
+		return OrderTypeSale, nil
+	case string(OrderTypePurchase):
+		return OrderTypePurchase, nil
+	default:
+		return "", fmt.Errorf("invalid OrderType: %s", s)
+	}
+}
+
 type PaymentMethod string
 
 const (
@@ -22,6 +35,20 @@ const (
 	PaymentMethodNequi     PaymentMethod = "NEQUI"
 	PaymentMethodDaviplata PaymentMethod = "DAVIPLATA"
 )
+
+// StringToPaymentMethod convierte un string a PaymentMethod (con validación).
+func StringToPaymentMethod(s string) (PaymentMethod, error) {
+	switch s {
+	case string(PaymentMethodCash):
+		return PaymentMethodCash, nil
+	case string(PaymentMethodNequi):
+		return PaymentMethodNequi, nil
+	case string(PaymentMethodDaviplata):
+		return PaymentMethodDaviplata, nil
+	default:
+		return "", fmt.Errorf("invalid PaymentMethod: %s", s)
+	}
+}
 
 type Order struct {
 	ID            primitive.ObjectID `bson:"_id" json:"id"`

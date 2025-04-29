@@ -34,17 +34,18 @@ const items = (navigate: NavigateFunction): MenuItem[] => [
     { key: 'logout', icon: <PieChartOutlined />, label: 'Cerrar sesión' },
   ];
 
-function MainMenu() {
+function MainMenu({collapsed}: {collapsed: boolean }) {
   let navigate = useNavigate();
 
     return (
-      <Menu
-        theme={"dark"}
-        defaultSelectedKeys={['1']}
-        defaultOpenKeys={['sub1']}
-        mode="inline"
-        items={items(navigate)}
-      />
+        <Menu
+          theme={"dark"}
+          defaultSelectedKeys={['1']}
+          defaultOpenKeys={['sub1']}
+          mode="inline"
+          inlineCollapsed={collapsed}
+          items={items(navigate)}
+        />
     )
 }
 

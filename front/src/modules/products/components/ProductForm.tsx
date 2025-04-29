@@ -22,13 +22,13 @@ function ProductForm({ type, product, form, values, formLoading, onStockUpdate, 
         <Divider>Catálogo</Divider>
         <Form
             form={form}
-            style={{ maxWidth: 1000, paddingTop: 24, paddingRight: 24 }}
+            style={{ maxWidth: 1000, paddingTop: 24, paddingRight: 24, overflow: 'auto', height: 'calc(100% - 155px)' }}
             labelCol={{ span: 8 }}
             wrapperCol={{ span: 16 }}
             onFinish={onSubmitProduct}
         >
         <Row>
-            <Col span={12}>
+            <Col xs={24} sm={24} span={12}>
                 <Form.Item<string>
                     label="Nombre"
                     name="name"
@@ -37,7 +37,7 @@ function ProductForm({ type, product, form, values, formLoading, onStockUpdate, 
                     <Input />
                 </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={24} span={12}>
                 <Form.Item<string>
                     label="Código"
                     name="sku"
@@ -47,7 +47,7 @@ function ProductForm({ type, product, form, values, formLoading, onStockUpdate, 
                 </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col xs={24} sm={24} span={12}>
                 <Form.Item<string>
                     label="Unidad"
                     name="unit"
@@ -68,7 +68,7 @@ function ProductForm({ type, product, form, values, formLoading, onStockUpdate, 
                         <>
                             {fields.map((field) => (
                                 <Row key={field.name} gutter={[16, 16]}>
-                                    <Col span={10}>
+                                    <Col xs={6} sm={6} span={10}>
                                         <Form.Item<string>
                                             name={[field.name, "subUnit"]}
                                             rules={[{ required: true, message: "Agrega una unidad!" }]}
@@ -77,7 +77,7 @@ function ProductForm({ type, product, form, values, formLoading, onStockUpdate, 
                                         </Form.Item>
                                     </Col>
 
-                                    <Col span={12}>
+                                    <Col xs={16} sm={16} span={12}>
                                         <Form.Item<string>
                                             key={field.name}
                                             name={[field.name, "price"]}
@@ -114,7 +114,7 @@ function ProductForm({ type, product, form, values, formLoading, onStockUpdate, 
 
                 {type === "CREATE" && (
                     <>
-                        <Col span={18}>
+                        <Col xs={24} sm={24} span={18}>
                         <Form.Item<number>
                             name={["stock", "quantity"]}
                             rules={[{ required: true, message: "Agrega una cantidad!" }]}
@@ -129,7 +129,7 @@ function ProductForm({ type, product, form, values, formLoading, onStockUpdate, 
                         </Form.Item>
                         </Col>
 
-                        <Col span={18}>
+                        <Col xs={24} sm={24} span={18}>
                         <Form.Item<number>
                             name={["stock", "cost"]}
                             rules={[{ required: true, message: "Agrega un costo!" }]}

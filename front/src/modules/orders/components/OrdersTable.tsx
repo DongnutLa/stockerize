@@ -1,8 +1,9 @@
-import { Table, Tag } from "antd";
-import { useMemo } from "react";
+import { Col, Row, Table, Tag } from "antd";
+import { useCallback, useMemo } from "react";
 import { Metadata, Order, PaymentMethod } from "../../../models";
 import { getPageSizeOptions, numberToCurrency } from "../../../utils/functions";
 import dayjs from "../../../utils/functions/dayjs";
+import useWindowDimensions from "../../../utils/hooks/useWindowDimensions";
 
 interface OrdersTableProps {
     orders: Order[]
@@ -13,7 +14,25 @@ interface OrdersTableProps {
 }
 
 function OrdersTable({orders, isFetching, pagination, handlePaginationChange, handleRowAction}: OrdersTableProps) {
-    const columns = useMemo(() => {
+  const { width } = useWindowDimensions()
+
+  const renderExpandedRow = useCallback((order: Order) => {
+    return (
+      <Row gutter={[16, 16]}>
+          <Col span={24}>
+            Total: {numberToCurrency(order.totals.total)}
+          </Col>
+          <Col>
+            Método: {<Tag color="red">{order.paymentMethod}</Tag>}
+          </Col>
+          <Col span={24}>
+            Creación: {dayjs(order.createdAt).utc().format("D MMM, YYYY h:mm A")}
+          </Col>
+      </Row>
+    )
+  }, [])  
+  
+  const columns = useMemo(() => {
         return [
           {
             title: "Número",
@@ -24,18 +43,21 @@ function OrdersTable({orders, isFetching, pagination, handlePaginationChange, ha
             title: "Total",
             dataIndex: ["totals", "total"],
             key: "total",
+            responsive: ["md" as any],
             render: (total: number) => numberToCurrency(total)
           },
           {
             title: "Método",
             dataIndex: "paymentMethod",
             key: "paymentMethod",
+            responsive: ["md" as any],
             render: (paymentMethod: PaymentMethod) => <Tag color="red">{paymentMethod}</Tag>
           },
           {
             title: "Creación",
             dataIndex: "createdAt",
             key: "createdAt",
+            responsive: ["md" as any],
             render: (createdAt: string) => dayjs(createdAt).utc().format("D MMM, YYYY h:mm A"),
           },
         ];
@@ -56,6 +78,11 @@ function OrdersTable({orders, isFetching, pagination, handlePaginationChange, ha
             onChange: handlePaginationChange,
         }}
         onRow={handleRowAction}
+        expandable={{
+          rowExpandable: () => width <= 576,
+          defaultExpandAllRows: true,
+          expandedRowRender: renderExpandedRow,
+        }}
     /> );
 }
 

@@ -1,7 +1,8 @@
-import { Space, Table, Tag } from "antd";
-import { useMemo } from "react";
+import { Col, Row, Space, Table, Tag } from "antd";
+import { useCallback, useMemo } from "react";
 import { Metadata, Price, Product, PRODUCT_UNIT_NAME, subUnitText } from "../../../models";
 import { getPageSizeOptions, numberToCurrency } from "../../../utils/functions";
+import useWindowDimensions from "../../../utils/hooks/useWindowDimensions";
 
 interface ProductsTableProps {
     products: Product[]
@@ -20,6 +21,29 @@ function ProductsTable({
   handlePaginationChange,
   handleRowAction
 }: ProductsTableProps) {
+  const { width } = useWindowDimensions()
+
+  const renderExpandedRow = useCallback((product: Product) => {
+    return (
+      <Row gutter={[16, 16]}>
+          <Col span={24}>
+            Código: {product.sku}
+          </Col>
+          <Col>
+            Unidad: {PRODUCT_UNIT_NAME[product.unit]}
+          </Col>
+          <Col span={24}>
+            {(product.prices ?? []).map(price => (
+              <div><Tag color="magenta">{subUnitText(price.subUnit)}</Tag> <span>{numberToCurrency(price.price)}</span></div>
+            ))}
+          </Col>
+          <Col span={24}>
+            Disponible: {`${product.stockSummary.available} ${PRODUCT_UNIT_NAME[product.unit]}`}
+          </Col>
+      </Row>
+    )
+  }, [])
+
     const columns = useMemo(() => {
         let cols = [
           {
@@ -31,11 +55,13 @@ function ProductsTable({
             title: "Código",
             dataIndex: "sku",
             key: "sku",
+            responsive: ["md" as any],
           },
           {
             title: "Precios",
             dataIndex: "prices",
             key: "prices",
+            responsive: ["md" as any],
             render: (prices: Price[]) => <Space direction="vertical">
                 {(prices ?? []).map(price => (
                     <div><Tag color="magenta">{subUnitText(price.subUnit)}</Tag> <span>{numberToCurrency(price.price)}</span></div>
@@ -46,6 +72,7 @@ function ProductsTable({
             title: "Disponible",
             dataIndex: ["stockSummary", "available"],
             key: "stock",
+            responsive: ["md" as any],
             render: (stock: number, reg: Product) => `${stock} ${PRODUCT_UNIT_NAME[reg.unit]}`
           }
         ];
@@ -72,6 +99,11 @@ function ProductsTable({
             onChange: handlePaginationChange,
         }}
         onRow={handleRowAction}
+        expandable={{
+          rowExpandable: () => width <= 576,
+          defaultExpandAllRows: true,
+          expandedRowRender: renderExpandedRow,
+        }}
     /> );
 }
 

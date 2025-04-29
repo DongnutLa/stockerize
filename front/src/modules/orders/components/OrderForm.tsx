@@ -7,6 +7,7 @@ import { DataNode } from "antd/es/tree";
 import { numberToCurrency } from "../../../utils/functions";
 import { useMemo } from "react";
 import Select, { BaseOptionType } from "antd/es/select";
+import useWindowDimensions from "../../../utils/hooks/useWindowDimensions";
 
 interface OrderFormProps {
     type: "CREATE" | "UPDATE"
@@ -39,6 +40,8 @@ function OrderForm({
     onChangePrice,
 }: OrderFormProps) {
 
+    const {width} = useWindowDimensions()
+
     const selectOptions = useMemo(() => {
         if (values?.type === "SALE") {
             return productOptions.map(p => ({
@@ -46,11 +49,11 @@ function OrderForm({
                 value: `${p.id}|1|parent`,
                 title: (
                     <Row>
-                        <Col span={12}>
+                        <Col xs={24} sm={24} span={12}>
                             {p.name}
                         </Col>
                         
-                        <Col span={12}>
+                        <Col xs={24} sm={24} span={12}>
                             Disponible: <Tag color="orange">{p.stockSummary?.available ?? 0}</Tag> {PRODUCT_UNIT_NAME[p.unit]}
                         </Col>
                     </Row>
@@ -80,19 +83,19 @@ function OrderForm({
             disabled: (values?.products ?? []).some(e => e.id === p.id),
             label: (
                 <Row>
-                    <Col span={13}>
+                    <Col xs={24} sm={24} span={13}>
                         {p.name}
                     </Col>
                     
-                    <Col span={3}>
+                    <Col xs={6} sm={6} span={3}>
                         <Tag color="orange">{p.stockSummary?.available ?? 0}</Tag>
                     </Col>
 
-                    <Col span={4}>
+                    <Col xs={18} sm={18} span={4}>
                         {PRODUCT_UNIT_NAME[p.unit]}
                     </Col>
 
-                    <Col span={4}>
+                    <Col xs={24} sm={24} span={4}>
                         {numberToCurrency(p.stockSummary.cost)}
                     </Col>
                 </Row>
@@ -117,7 +120,6 @@ function OrderForm({
                 }}
                 labelCol={{ span: 8 }}
                 wrapperCol={{ span: 24 }}
-                // initialValues={emptyOrderDto}
                 onFinish={onSubmitOrder}
                 disabled={disabled}
             >
@@ -137,6 +139,10 @@ function OrderForm({
                             rules={[{ required: true, message: 'Selecciona un tipo de orden!' }]}
                         >
                             <Radio.Group
+                                style={{
+                                    flexDirection: width <= 576 ? "column" : "row",
+                                    gap: width <= 576 ? 12 : "unset"
+                                }}
                                 block
                                 options={[
                                     {label: "Orden de venta", value: "SALE"},
@@ -145,7 +151,7 @@ function OrderForm({
                                 defaultValue="SALE"
                                 optionType="button"
                                 buttonStyle="solid"
-                                />
+                            />
                         </Form.Item>
 
                         <Form.Item label="Productos" name="products" rules={[{ required: true, message: "Selecciona al menos un producto"}]}>
@@ -169,7 +175,7 @@ function OrderForm({
                         </Form.Item>
                     </Col>
 
-                    <Col span={12}>
+                    <Col xs={24} sm={24} span={12}>
                         <Form.Item label="Descuentos" name="discount">
                             <InputNumber<number>
                                 prefix="$"
@@ -183,7 +189,7 @@ function OrderForm({
                         </Form.Item>
                     </Col>
 
-                    <Col span={12}>
+                    <Col xs={24} sm={24} span={12}>
                         <Form.Item labelCol={{ style: { width: "100%" }}} label="Método de pago" name="paymentMethod" rules={[{ required: true, message: "Selecciona un método de pago"}]}>
                             <Select
                                 placeholder="Seleccione método de pago"
@@ -197,7 +203,7 @@ function OrderForm({
                         </Form.Item>
                     </Col>
 
-                    <div style={{padding: 20, backgroundColor: "#fff5ea", borderRadius: 12, width: "50%"}}>
+                    <div style={{padding: 20, backgroundColor: "#fff5ea", borderRadius: 12, width: width <= 575 ? "100%" : "50%", marginBottom: 12}}>
                         <Typography.Title style={{fontSize: "2rem"}}>Totales</Typography.Title>
                         <Col span={24}>
                             <Form.Item layout="horizontal" labelAlign="left" labelCol={{ style: {width: "50%"}}} wrapperCol={{ style: {textAlign: "left"}}} label="Subtotal" name={["totals", "subtotal"]}>
